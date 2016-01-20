@@ -1,0 +1,115 @@
+---
+title: "Lab 1"
+date: "February 2, 2016"
+output: html_document
+---
+
+Dataset 1: LangScores
+
+Source: Snijders and Boskers (1999)
+
+
+We are interested in language scores `langpost`
+
+1. Download from BlackBoard
+* SB.sas7bdat
+
+__Note:__ To run code within the RMarkdown file, you can use the shortcut `Ctrl + Alt + C` to run the code within the current chunk where the cursor is positioned. 
+
+To install packages for the first time, use the `install.packages` function: 
+
+```{r, eval = FALSE}
+install.packages("haven")
+```
+
+To load a package: 
+
+The package name in this case is `haven`
+
+```{r}
+library("haven")
+```
+
+Now, read in the data. First, make sure that your working directory is the same as the one that contains the data. In this example, we use the downloads directory. 
+
+```{r, eval = FALSE}
+setwd("~/../Downloads/")
+```
+
+We will read the data using a function within the `haven` package and assign it to a variable (any name will suffice, let's use `sb`). 
+
+```{r}
+sb <- read_sas("SB.sas7bdat")
+```
+
+Now we are ready to explore the data. 
+
+To look at tabular data, use the `View` function on the object:
+
+```{r, eval = FALSE}
+View(sb)
+```
+
+To get a brief view of what the data looks like, use both the `head` and `tail` functions on the object:
+
+```{r, eval = FALSE}
+head(sb)
+tail(sb)
+```
+
+2. To look at the dimensions of the table and obtain the number of records, use the `dim` function. It will return the number of rows and the number of columns in the table, respectively.
+
+```{r}
+dim(sb)
+```
+
+3. Run the following code to fill-in Table 1. First the `table` function calculates the number of participants in each factor level. Then the `prop.table` function calculates proportions in each category for a `table`, in this case `table(sb$sex)`. We then multiply by 100 to get a percent. Then the `tapply` calculates mean language scores by each of levels in the factor variables. In this case, we use `sex` and `minority` as factor variables. 
+
+```{r}
+table(sb$sex)
+prop.table(table(sb$sex))*100
+tapply(sb$langPOST, sb$sex, mean)
+```
+
+Now we do it for the `Minority` variable: 
+
+```{r}
+table(sb$Minority)
+prop.table(table(sb$Minority))*100
+tapply(sb$langPOST, sb$Minority, mean)
+```
+
+
+```{r}
+library(dplyr)
+group_by(sb, schoolNR) %>% summarize(n = n(), avg_lang = mean(langPOST), sdev = sd(langPOST), min = min(langPOST), max = max(langPOST))
+```
+
+An alternative way of doing these summary calculations with just base functions in R: 
+
+```{r}
+myfuns <- list(n = length, mean = mean, stdev = sd, min = min, max = max)
+dats <- lapply(myfuns, function(x) {tapply(sb$langPOST, sb$schoolNR, x)})
+schools <- do.call(cbind, dats)
+head(schools)
+```
+
+4. See the first 20 observations for selected variables. 
+
+```{r}
+head(sb[, c("langPOST", "sex", "schoolNR", "schoolSES")],20)
+```
+
+7. One assumption of a general linear mixed model with a continuous outcome is that the outcome at level-1 is normally distributed.  Run the following code to check the distribution of the outcome.
+
+```{r}
+hist(sb$langPOST, breaks = 20, density = 20, xlab = "POST Language Score", main = "histogram with normal curve", freq = FALSE, ylim = c(0, 0.05))
+curve(dnorm(x, mean = mean(sb$langPOST), sd = sd(sb$langPOST)), col = "darkblue" , lwd = 2, add = TRUE)
+```
+
+8. Another assumption of a general linear mixed model with a continuous outcome is that the outcome at level-2 is normally distributed.  Run the following code to check the distribution of the outcome at level-2.
+
+```{r}
+hist(dats$mean, breaks = 20, density = 20, xlab = "School Means", main = "histogram with normal curve", freq = FALSE, ylim = c(0, 0.12))
+curve(dnorm(x, mean = mean(dats$mean), sd = sd(dats$mean)), col = "darkblue" , lwd = 2, add = TRUE)
+```
