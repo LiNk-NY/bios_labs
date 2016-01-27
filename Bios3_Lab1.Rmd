@@ -113,3 +113,10 @@ curve(dnorm(x, mean = mean(sb$langPOST), sd = sd(sb$langPOST)), col = "darkblue"
 hist(dats$mean, breaks = 20, density = 20, xlab = "School Means", main = "histogram with normal curve", freq = FALSE, ylim = c(0, 0.12))
 curve(dnorm(x, mean = mean(dats$mean), sd = sd(dats$mean)), col = "darkblue" , lwd = 2, add = TRUE)
 ```
+
+9. Now run an empty model using `nlme::lme` a function from the `nlme` package. 
+
+```{r}
+library(nlme)
+fitmix <- nlme::lme(langPOST ~ 1, data = sb, random = ~1 |  schoolNR)
+```
