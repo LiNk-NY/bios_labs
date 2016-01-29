@@ -26,3 +26,9 @@ vignettes/*.pdf
 *.docx
 *.sas7bdat
 
+# RStudio Files
+.Rproj.user
+*.Rproj
+
+# Output files
+*.html

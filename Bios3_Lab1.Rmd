@@ -63,7 +63,11 @@ tail(sb)
 dim(sb)
 ```
 
-3. Run the following code to fill-in Table 1. First the `table` function calculates the number of participants in each factor level. Then the `prop.table` function calculates proportions in each category for a `table`, in this case `table(sb$sex)`. We then multiply by 100 to get a percent. Then the `tapply` calculates mean language scores by each of levels in the factor variables. In this case, we use `sex` and `minority` as factor variables. 
+3. Use the following code to fill-in Table 1, which is a descriptive table of the individual level factors contained in the SB dataset and language scores (langpost) by these categories. 
+
+First the `table` function calculates the number of participants in each factor level. Then the `prop.table` function calculates proportions in each category for a `table`, in this case `table(sb$sex)`. We then multiply by 100 to get a percent. Then the `tapply` calculates mean language scores by each of levels in the factor variables. In this case, we use `sex` and `minority` as factor variables. 
+
+First, the `sex` variable: 
 
 ```{r}
 table(sb$sex)
@@ -79,6 +83,18 @@ prop.table(table(sb$Minority))*100
 tapply(sb$langPOST, sb$Minority, mean)
 ```
 
+__Table 1.__ Individual level characteristics
+
+|            | N | % | Mean Language Score |
+|------------|---|---|---------------------|
+| Sex        |   |   |                     |
+| 0 = Female |   |   |                     |
+| 1 = Male   |   |   |                     |
+| Minority   |   |   |                     |
+| 0 = No     |   |   |                     |
+| 1 = Yes    |   |   |                     |
+
+Run the code to look at mean language scores by school 
 
 ```{r}
 library(dplyr)
@@ -94,11 +110,16 @@ schools <- do.call(cbind, dats)
 head(schools)
 ```
 
-4. See the first 20 observations for selected variables. 
+
+4. Run the following code to see the first 20 observations for the selected variables. 
 
 ```{r}
 head(sb[, c("langPOST", "sex", "schoolNR", "schoolSES")],20)
 ```
+
+5. What do you notice about the distribution of language scores in these 20 individuals who are from the same school? 
+
+6. What do you notice about the distribution of schoolses in these 20 individuals from school 1?
 
 7. One assumption of a general linear mixed model with a continuous outcome is that the outcome at level-1 is normally distributed.  Run the following code to check the distribution of the outcome.
 
@@ -116,7 +137,45 @@ curve(dnorm(x, mean = mean(dats$mean), sd = sd(dats$mean)), col = "darkblue" , l
 
 9. Now run an empty model using `nlme::lme` a function from the `nlme` package. 
 
-```{r}
-library(nlme)
+```{r, message=FALSE}
+suppressWarnings(library(nlme))
 fitmix <- nlme::lme(langPOST ~ 1, data = sb, random = ~1 |  schoolNR)
+summary(fitmix)
 ```
+
+10. How many schools are there in this sample? 
+
+11. What is the maximum number of subjects in a school? 
+
+12. How many fixed effects were estimated? 
+
+13. How many random effects were estimated? 
+	
+_Using the Covariance Parameter Estimates portion of the output answer the following Questions:_
+
+14. What is the variance estimate for the amount of variance due to between schools (group) differences? 
+
+15. What is the variance estimate for the amount of variance due to within school (group) differences? 
+
+16. Calculate the Intraclass correlation coefficient.  Interpret.
+
+17. Now using the solution for fixed effects portion of the output, interpret the intercept.  
+
+18.	Run the following code, which will allow you to assess whether verbal IQ, a level 1 variable, is associated with langpost, after accounting for the fact that individuals are nested within schools.
+For easier interpretation we will center IQ verbal variable around the grand mean.
+
+```{r}
+sb$iq_center <- scale(sb$IQ_verb)
+```
+
+```{r}
+fitmix2 <- nlme::lme(langPOST ~ iq_center, data = sb, random = ~1 |  schoolNR)
+```
+
+19. Interpret the intercept.
+
+20. Interpret the fixed effect estimate for the IQ verbal (centered ) term.
+
+21. Write out the equation for the model specified above.
+
+22. How much of the within school variation in langpost is explained by IQ verbal?
