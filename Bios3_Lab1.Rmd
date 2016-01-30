@@ -9,7 +9,7 @@ Dataset 1: LangScores
 Source: Snijders and Boskers (1999)
 
 
-We are interested in language scores `langpost`
+We are interested in language scores `langPOST`
 
 1. Download from BlackBoard
 * SB.sas7bdat
@@ -165,7 +165,7 @@ _Using the Covariance Parameter Estimates portion of the output answer the follo
 For easier interpretation we will center IQ verbal variable around the grand mean.
 
 ```{r}
-sb$iq_center <- scale(sb$IQ_verb)
+sb$iq_center <- scale(sb$IQ_verb, scale = FALSE)
 ```
 
 ```{r}

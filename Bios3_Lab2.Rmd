@@ -1,0 +1,50 @@
+---
+title: "Lab 2"
+date: "February 16, 2016"
+output: html_document
+---
+
+Dataset 1: LangScores
+
+Source: Snijders and Boskers (1999)
+
+
+We are interested in language scores `langPOST`
+
+1. Run a model with only 1 level-2 predictor, the school SES centered.
+
+```{r}
+setwd("~/../Downloads/")
+library(haven)
+sb <- read_sas("SB.sas7bdat")
+mean(sb$schoolSES)
+sb$ses_center <- scale(sb$schoolSES, scale = FALSE)
+```
+
+Check your work and make sure that the mean of the new variable is approximately zero. 
+
+```{r}
+round(mean(sb$ses_center), 3)
+```
+
+```{r}
+fitmix <- nlme::lme(langPOST ~ ses_center, data = sb, random = ~1 |  schoolNR)
+summary(fitmix)
+VarCorr(fitmix)
+```
+
+2. Interpret the intercept. 
+
+3. Interpret the parameter estimate for school SES. 
+
+4. Based on the results from above do you think school SES is an important predictor of language scores?
+
+5. How much of the between group variation in language scores is due to school SES?
+
+6. Now allow slopes to vary as well. 
+
+```{r}
+fitmix2 <- nlme::lme(langPOST ~ ses_center, data = sb, random = ~ ses_center | schoolNR)
+summary(fitmix2)
+VarCorr(fitmix2)
+```
