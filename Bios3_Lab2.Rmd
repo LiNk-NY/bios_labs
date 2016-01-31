@@ -28,7 +28,8 @@ round(mean(sb$ses_center), 3)
 ```
 
 ```{r}
-fitmix <- nlme::lme(langPOST ~ ses_center, data = sb, random = ~1 |  schoolNR)
+library(nlme)
+fitmix <- lme(langPOST ~ ses_center, data = sb, random = ~1 |  schoolNR)
 summary(fitmix)
 VarCorr(fitmix)
 ```
@@ -44,7 +45,7 @@ VarCorr(fitmix)
 6. Now allow slopes to vary as well. 
 
 ```{r}
-fitmix2 <- nlme::lme(langPOST ~ ses_center, data = sb, random = ~ ses_center | schoolNR)
+fitmix2 <- lme(langPOST ~ ses_center, data = sb, random = ~ ses_center | schoolNR)
 summary(fitmix2)
 VarCorr(fitmix2)
 ```
