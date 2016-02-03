@@ -16,29 +16,28 @@ We are interested in language scores `langPOST`
 
 __Note:__ This is an RMarkdown file or .Rmd file. You can directly type your answers in this file and when done, click on the "Knit HTML" button at the top (from within RStudio). RMarkdown files are great for reproducibilty as they can include code and text all in one document.
 
-To run code within the RMarkdown file, you can use the shortcut `Ctrl + Alt + C` within the current chunk where the cursor is positioned. You can also select `Code` > `Run region` > `Run current chunk` from the RStudio menu.
+To run code within the RMarkdown file, you can use the shortcut `Ctrl + Alt + C` within the current chunk where the cursor is positioned.
+A chunk is delimited by triple backticks. Run only the code inside those backticks and not the backticks themselves. You can also select `Code` > `Run region` > `Run current chunk` from the RStudio menu to run the code inside the current chunk.
 
-To install packages for the first time, use the `install.packages` function: 
+You will need to run this chunk yourself. To install packages for the first time, use the `install.packages` function. Go the the line below and run the current chunk so you can install the `haven` package. This package will be used to read the SAS dataset into memory. 
 
 ```{r, eval = FALSE}
 install.packages("haven")
 ```
 
-To load a package: 
-
-The package name in this case is `haven`
+To load a package use the `library` function.
 
 ```{r}
 library("haven")
 ```
 
-Now, read in the data. First, make sure that your working directory is the same as the one that contains the data. In this example, we use the downloads directory. 
+Now, read in the data. First, make sure that your working directory is the same as the one that __contains the data__. In this example, we use the downloads directory. 
 
 ```{r, eval = FALSE}
 setwd("~/../Downloads/")
 ```
 
-We will read the data using a function within the `haven` package and assign it to a variable (any name will suffice, let's use `sb`). 
+We will now read the data using a function within the `haven` package and assign it to a variable (any name will suffice, let's use `sb`).
 
 ```{r}
 sb <- read_sas("SB.sas7bdat")
@@ -52,7 +51,7 @@ To look at tabular data, use the `View` function on the object:
 View(sb)
 ```
 
-To get a brief view of what the data looks like, use both the `head` and `tail` functions on the object:
+You can also get a small view of what the data looks like by using both the `head` and `tail` functions on the object `sb`.
 
 ```{r, eval = FALSE}
 head(sb)
@@ -61,7 +60,7 @@ tail(sb)
 
 2. To look at the dimensions of the table and obtain the number of records, use the `dim` function. It will return the number of rows and the number of columns in the table, respectively.
 
-```{r}
+```{r, eval = FALSE}
 dim(sb)
 ```
 
@@ -102,7 +101,7 @@ Type your answers between the "|" (table column delimiters) and recompile the do
 Run the code to look at mean language scores by school 
 
 ```{r}
-library(dplyr)
+suppressPackageStartupMessages(library(dplyr))
 group_by(sb, schoolNR) %>% summarize(n = n(), avg_lang = mean(langPOST), sdev = sd(langPOST), min = min(langPOST), max = max(langPOST))
 ```
 
@@ -143,7 +142,7 @@ curve(dnorm(x, mean = mean(dats$mean), sd = sd(dats$mean)), col = "darkblue" , l
 9. Now run an empty model using `nlme::lme` a function from the `nlme` package. 
 
 ```{r, message=FALSE}
-suppressWarnings(library(nlme))
+suppressPackageStartupMessages(library(nlme))
 fitmix <- nlme::lme(langPOST ~ 1, data = sb, random = ~1 |  schoolNR)
 summary(fitmix)
 ```
@@ -208,8 +207,12 @@ VarCorr(fitmix2)
 
 19. Interpret the intercept.
 
+
 20. Interpret the fixed effect estimate for the IQ verbal (centered) term.
+
 
 21. Write out the equation for the model specified above.
 
+
 22. How much of the within school variation in langpost is explained by IQ verbal?
+
