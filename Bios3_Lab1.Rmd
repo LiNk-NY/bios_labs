@@ -1,5 +1,5 @@
 ---
-title: "Lab 1"
+title: "Biostats 3 Lab 1"
 date: "February 2, 2016"
 output: html_document
 ---
@@ -14,7 +14,9 @@ We are interested in language scores `langPOST`
 1. Download from BlackBoard
 * SB.sas7bdat
 
-__Note:__ To run code within the RMarkdown file, you can use the shortcut `Ctrl + Alt + C` to run the code within the current chunk where the cursor is positioned. You can also select `Code` > `Run region` > `Run current chunk` from the RStudio menu. 
+__Note:__ This is an RMarkdown file or .Rmd file. You can directly type your answers in this file and when done, click on the "Knit HTML" button at the top (from within RStudio). RMarkdown files are great for reproducibilty as they can include code and text all in one document.
+
+To run code within the RMarkdown file, you can use the shortcut `Ctrl + Alt + C` within the current chunk where the cursor is positioned. You can also select `Code` > `Run region` > `Run current chunk` from the RStudio menu.
 
 To install packages for the first time, use the `install.packages` function: 
 
@@ -83,7 +85,7 @@ prop.table(table(sb$Minority))*100
 tapply(sb$langPOST, sb$Minority, mean)
 ```
 
-__Table 1.__ Individual level characteristics
+#### __Table 1.__ Individual level characteristics
 
 |            | N | % | Mean Language Score |
 |------------|---|---|---------------------|
@@ -93,6 +95,9 @@ __Table 1.__ Individual level characteristics
 | Minority   |   |   |                     |
 | 0 = No     |   |   |                     |
 | 1 = Yes    |   |   |                     |
+
+_**Note:**_ If you are reading the HTML version of this page, please edit the table in the .Rmd file in RStudio.
+Type your answers between the "|" (table column delimiters) and recompile the document by clicking "Knit HTML" at the top.
 
 Run the code to look at mean language scores by school 
 
