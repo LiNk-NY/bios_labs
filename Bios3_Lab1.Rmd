@@ -14,7 +14,7 @@ We are interested in language scores `langPOST`
 1. Download from BlackBoard
 * SB.sas7bdat
 
-__Note:__ To run code within the RMarkdown file, you can use the shortcut `Ctrl + Alt + C` to run the code within the current chunk where the cursor is positioned. 
+__Note:__ To run code within the RMarkdown file, you can use the shortcut `Ctrl + Alt + C` to run the code within the current chunk where the cursor is positioned. You can also select `Code` > `Run region` > `Run current chunk` from the RStudio menu. 
 
 To install packages for the first time, use the `install.packages` function: 
 
@@ -143,6 +143,27 @@ fitmix <- nlme::lme(langPOST ~ 1, data = sb, random = ~1 |  schoolNR)
 summary(fitmix)
 ```
 
+Covariance Parameter Estimates in R
+
+```{r}
+VarCorr(fitmix)
+```
+
+### Shortcut for calculating ICC from an `lme` object:
+
+```{r}
+ICClme <- function(out){
+  varests <- as.numeric(VarCorr(out)[1:2])
+  varests[1] / sum(varests)
+}
+```
+
+Calculate the ICC for the current `lme` object:
+
+```{r}
+ICClme(fitmix)
+```
+
 10. How many schools are there in this sample? 
 
 11. What is the maximum number of subjects in a school? 
@@ -170,11 +191,19 @@ sb$iq_center <- scale(sb$IQ_verb, scale = FALSE)
 
 ```{r}
 fitmix2 <- nlme::lme(langPOST ~ iq_center, data = sb, random = ~1 |  schoolNR)
+summary(fitmix2)
+```
+
+Extract the variance and correlation components from an `lme` class object. 
+
+```{r}
+VarCorr(fitmix)
+VarCorr(fitmix2)
 ```
 
 19. Interpret the intercept.
 
-20. Interpret the fixed effect estimate for the IQ verbal (centered ) term.
+20. Interpret the fixed effect estimate for the IQ verbal (centered) term.
 
 21. Write out the equation for the model specified above.
 
