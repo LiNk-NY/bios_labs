@@ -98,7 +98,9 @@ tapply(sb$langPOST, sb$Minority, mean)
 _**Note:**_ If you are reading the HTML version of this page, please edit the table in the .Rmd file in RStudio.
 Type your answers between the "|" (table column delimiters) and recompile the document by clicking "Knit HTML" at the top.
 
-Run the code to look at mean language scores by school 
+Run the code to look at mean language scores by school.
+
+The `dplyr` package allows for readable code. Below can be read as, first group your data by `schoolNR` then you summarize it by N, Means, Standard Deviations, Minima and Maxima.
 
 ```{r}
 suppressPackageStartupMessages(library(dplyr))
