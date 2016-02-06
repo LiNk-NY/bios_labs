@@ -11,17 +11,26 @@ Source: Snijders and Boskers (1999)
 
 We are interested in language scores `langPOST`
 
+First set your working directory to the __downloads__ folder: (platform dependent)
+```{r, eval = FALSE}
+if(.Platform$OS.type == "unix") {
+    setwd("~/Downloads")
+} else if (.Platform$OS.type == "windows") {
+    setwd("~/../Downloads")
+}
+```
+
 1. Run a model with only 1 level-2 predictor, the school SES centered.
 
 ```{r}
-setwd("~/../Downloads/")
 library(haven)
 sb <- read_sas("SB.sas7bdat")
 mean(sb$schoolSES)
 sb$ses_center <- scale(sb$schoolSES, scale = FALSE)
+sb$iq_center <- scale(sb$IQ_verb, scale = FALSE)
 ```
 
-Check your work and make sure that the mean of the new variable is approximately zero. 
+Check your work and make sure that the mean of the new variable is approximately zero.
 
 ```{r}
 round(mean(sb$ses_center), 3)
@@ -31,21 +40,70 @@ round(mean(sb$ses_center), 3)
 library(nlme)
 fitmix <- lme(langPOST ~ ses_center, data = sb, random = ~1 |  schoolNR)
 summary(fitmix)
+intervals(fitmix)
 VarCorr(fitmix)
 ```
 
-2. Interpret the intercept. 
+2. Interpret the intercept.
 
-3. Interpret the parameter estimate for school SES. 
+3. Interpret the parameter estimate for school SES.
 
 4. Based on the results from above do you think school SES is an important predictor of language scores?
 
 5. How much of the between group variation in language scores is due to school SES?
 
-6. Now allow slopes to vary as well. 
+6. Now allow slopes to vary as well.
 
 ```{r}
 fitmix2 <- lme(langPOST ~ ses_center, data = sb, random = ~ ses_center | schoolNR)
 summary(fitmix2)
+intervals(fitmix2)
 VarCorr(fitmix2)
+```
+
+7. Looking at the covariance parameter estimates output what is the value for the variance estimate of the slopes ($\sigma_{11}^2$)?
+
+8. Would you conclude that slopes vary significantly across groups?
+
+9. Interpret the value of covariance from the covariance parameter table.
+
+
+10. Interpret the Fixed effect estimate for the intercept and for verbal IQ  , now that you’ve allowed the slope to vary across groups.
+
+
+11. We found that the IQ verbal is a useful predictor of language score. Now we will examine if this effect is modified by school SES. Include both IQ verbal (centered) and  school SES (centered) as predictors of language scores to assess how the effect of each changes after accounting for the other.
+
+```{r}
+fitmix3 <- lme(langPOST ~ ses_center + iq_center, data = sb, random = ~ iq_center | schoolNR)
+summary(fitmix3)
+intervals(fitmix3)
+VarCorr(fitmix3)
+```
+
+12. Now assess whether there is a cross-level interaction between IQ verbal and school SES.
+
+```{r}
+fitmix4 <- lme(langPOST ~ ses_center + iq_center + ses_center*iq_center, data = sb, random = ~ iq_center | schoolNR)
+summary(fitmix4)
+intervals(fitmix4)
+VarCorr(fitmix4)
+```
+
+13. Do the same but this time use school type as a level 2 predictor.
+First create a dichotomous variable such that `1 = "Public School"` and `0 = "private school"`
+
+```{r}
+table(sb$denomina)
+sb$schtype <- ifelse(sb$denomina == 1, 1, 0)
+table(sb$schtype)
+```
+
+Interpret fixed and random effects in the model
+Does the school type modify the effect of verbal IQ?
+
+```{r}
+fitmix5 <- lme(langPOST ~ iq_center + schtype + iq_center*schtype, data = sb, random = ~ iq_center | schoolNR)
+summary(fitmix5)
+intervals(fitmix5)
+VarCorr(fitmix5)
 ```

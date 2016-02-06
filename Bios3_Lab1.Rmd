@@ -31,10 +31,14 @@ To load a package use the `library` function.
 library("haven")
 ```
 
-Now, read in the data. First, make sure that your working directory is the same as the one that __contains the data__. In this example, we use the downloads directory. 
+Now, read in the data. First, make sure that your working directory is the same as the one that __contains the data__. In this example, we use the downloads directory. Depending on your machine, the `Downloads` folder may be located in different subfolders. The following `if else` control structure accounts for that.
 
 ```{r, eval = FALSE}
-setwd("~/../Downloads/")
+if (.Platform$OS.type == "unix") {
+    setwd("~/Downloads")
+} else if (.Platform$OS.type == "windows") {
+    setwd("~/../Downloads")
+}
 ```
 
 We will now read the data using a function within the `haven` package and assign it to a variable (any name will suffice, let's use `sb`).
@@ -149,6 +153,12 @@ fitmix <- nlme::lme(langPOST ~ 1, data = sb, random = ~1 |  schoolNR)
 summary(fitmix)
 ```
 
+To see the intervals of the estimate(s) use the `intervals` function:
+
+```{r}
+intervals(fitmix)
+```
+
 Covariance Parameter Estimates in R
 
 ```{r}
@@ -198,6 +208,7 @@ sb$iq_center <- scale(sb$IQ_verb, scale = FALSE)
 ```{r}
 fitmix2 <- nlme::lme(langPOST ~ iq_center, data = sb, random = ~1 |  schoolNR)
 summary(fitmix2)
+intervals(fitmix2)
 ```
 
 Extract the variance and correlation components from an `lme` class object. 
