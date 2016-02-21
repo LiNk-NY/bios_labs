@@ -3,7 +3,7 @@ title: "Biostats 3 Lab 1"
 date: "February 20, 2016"
 output: html_document
 ---
-2
+
 ## Logistic Regression using mixed models
 
 Dataset source: Raudenbush and Bryk (2002)
@@ -97,5 +97,32 @@ summary(mod1)
 
 5. Interpret fixed and random effects in empty model.
 
-6. Now we will add one level 1 predictor, gender. Interpret fixed effects of gender ($\beta_male$) 
+6. Now we will add one level 1 predictor, gender. Interpret fixed effects of gender ($\beta_{10}$).
 Write down the equations for the model.
+
+```{r}
+mod2 <- glmer(factor(thai$rep1) ~ male + (1 | schoolid), family = binomial(link = "logit"), data = thai, control=glmerControl(optimizer="bobyqa"))
+```
+
+7. Now we will add the other level 1 predictors (pped) and level 2 variable (school ses centered).
+
+```{r}
+mod3 <- glmer(factor(thai$rep1) ~ male + pped + msesc + (1 | schoolid), family = binomial(link = "logit"), data = thai, control=glmerControl(optimizer="bobyqa"))
+summary(mod3)
+exp(coef(summary(mod3))[-1 ,1])
+```
+
+To obtain 95% confidence intervals from the results of the `glmer` function, run the following code: 
+
+```{r}
+results <- as.data.frame(coef(summary(mod3)))
+confints <- with(results, Estimate + outer(`Std. Error`, c(lower=-1, upper=1)) * sqrt(qchisq(0.95, 1)))
+rownames(confints) <- rownames(results)
+newresults <- cbind(results, confints)
+newresults
+```
+
+8. Interpret the coefficients in the model.
+
+9. Run GEE on the same data and interpret
+
