@@ -126,3 +126,26 @@ newresults
 
 9. Run GEE on the same data and interpret
 
+```{r}
+if (!suppressMessages(require("gee"))) {
+    install.packages("gee")
+}
+if (!suppressMessages(require("geesmv"))) {
+    install.packages("geesmv")
+}
+library(gee)
+## Unstructured correlation structure
+formula <- rep1 ~ male + pped + msesc
+gee.unstr <- gee(formula, id = schoolid, family = binomial(link = "logit"),
+                        data = thai, corstr = "unstructured")
+summary(gee.unstr)
+```
+
+GEE with MBN variance estimator
+
+```{r}
+library(geesmv)
+thai2 <- dplyr::arrange(thai[complete.cases(thai), ])
+thai2 <- as.data.frame(thai2)
+mbn.unstr <- GEE.var.mbn(formula, id = "schoolid", family = binomial, data = thai2)
+```
