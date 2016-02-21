@@ -120,6 +120,11 @@ schools <- do.call(cbind, dats)
 head(schools)
 ```
 
+The `by()` function can also be of use: 
+
+```{r}
+by(sb$langPOST, sb$schoolNR, function(x) { round(c(n = length(x), mean = mean(x, na.rm = TRUE), sd = sd(x, na.rm = TRUE), min = min(x), max = max(x)),3)})
+```
 
 4. Run the following code to see the first 20 observations for the selected variables. 
 

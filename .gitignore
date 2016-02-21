@@ -25,6 +25,7 @@ vignettes/*.pdf
 # External files
 *.docx
 *.sas7bdat
+*.[Ss][Aa][Vv]
 
 # RStudio Files
 .Rproj.user

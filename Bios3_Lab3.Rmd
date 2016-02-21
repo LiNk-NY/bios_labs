@@ -1,0 +1,88 @@
+---
+title: "Biostats 3 Lab 1"
+date: "February 20, 2016"
+output: html_document
+---
+2
+## Logistic Regression using mixed models
+
+Dataset source: Raudenbush and Bryk (2002)
+
+Data description: Data on whether or not children had to repeat a grade during their time in primary school (Thailand, 1988)
+
+Dataset name: `Thai spss.SAV`
+
+Data Codebook:
+
+Rep1 (repeated grade 1= Yes, 0=No)
+Male (1=male, 0=female)
+PPED (pre-primary school education 1= Yes, 0=No).
+SES – school SES centered
+
+1. The dataset is in SPSS format we will import it into R. 
+__Note:__ Assuming the dataset file location is in your downloads folder.
+
+Set the working directory to `Downloads` depending on system. 
+
+```{r}
+library(haven)
+if (.Platform$OS.type == "unix") {
+    setwd("~/Downloads")
+} else if (.Platform$OS.type == "windows") {
+    setwd("~/../Downloads")
+}
+```
+
+Read the dataset and save it to an object named `thai`. 
+
+```{r}
+thai <- read_spss("Thai spss.SAV")
+```
+
+2. Run `head(thai)` to identify variables as level 1 or level 2 variables. Conduct descriptive analysis using `table` and `prop.table` for categorial variables and the appropriate summary functions for numeric variables. 
+
+Categorical variables: 
+
+```{r}
+head(thai)
+table(thai$male); prop.table(table(thai$male))
+table(thai$pped); prop.table(table(thai$pped))
+table(thai$rep1); prop.table(table(thai$rep1))
+```
+
+Numeric variables: 
+__Note:__ You can run each function individually. 
+
+```{r}
+mean(thai$msesc, na.rm = TRUE)
+sd(thai$msesc, na.rm = TRUE)
+min(thai$msesc, na.rm = TRUE)
+max(thai$msesc, na.rm = TRUE)
+```
+
+__Note:__ or as a group 
+
+```{r}
+myfuns <- list(mean = mean, stdev = sd, min = min, max = max)
+sapply(myfuns, function(x){ round(x(na.omit(thai$msesc)), 3)})
+```
+
+To easily create summary statistics by group, `dplyr` offers a quick solution. 
+
+Group by gender `male`: 
+```{r}
+library(dplyr)
+thai %>% group_by(male) %>% summarize(n = n(), mean = mean(rep1, na.rm = TRUE), sd = sd(rep1, na.rm = TRUE))
+```
+
+Group by pre-primary school education `pped`: 
+```{r}
+thai %>% group_by(pped) %>% summarize(n = n(), mean = mean(rep1, na.rm = TRUE), sd = sd(rep1, na.rm = TRUE))
+```
+
+3. Run empty model using `lme4::lmer`. Write down the corresponding model (level 1 and level 2 equations)
+
+```{r}
+library(lme4)
+mod1 <- lmer(factor(thai$rep1) ~ 1 + (1 | schoolid), family = binomial(link = "logit"), data = thai)
+```
