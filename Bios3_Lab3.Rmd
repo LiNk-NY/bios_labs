@@ -25,7 +25,6 @@ __Note:__ Assuming the dataset file location is in your downloads folder.
 Set the working directory to `Downloads` depending on system. 
 
 ```{r}
-library(haven)
 if (.Platform$OS.type == "unix") {
     setwd("~/Downloads")
 } else if (.Platform$OS.type == "windows") {
@@ -36,6 +35,7 @@ if (.Platform$OS.type == "unix") {
 Read the dataset and save it to an object named `thai`. 
 
 ```{r}
+library(haven)
 thai <- read_spss("Thai spss.SAV")
 ```
 
@@ -83,6 +83,19 @@ thai %>% group_by(pped) %>% summarize(n = n(), mean = mean(rep1, na.rm = TRUE), 
 3. Run empty model using `lme4::lmer`. Write down the corresponding model (level 1 and level 2 equations)
 
 ```{r}
+if (!require(lme4)){
+    install.packages("lme4")
+}
 library(lme4)
-mod1 <- lmer(factor(thai$rep1) ~ 1 + (1 | schoolid), family = binomial(link = "logit"), data = thai)
+## check for the appropriate reference variable (0 is 0 and 1 is 1)
+contrasts(factor(thai$rep1))
+mod1 <- glmer(factor(thai$rep1) ~ 1 + (1 | schoolid), family = binomial(link = "logit"), data = thai, control=glmerControl(optimizer="bobyqa"))
+summary(mod1)
 ```
+
+4. Describe the variation between schools in grade repetition.
+
+5. Interpret fixed and random effects in empty model.
+
+6. Now we will add one level 1 predictor, gender. Interpret fixed effects of gender ($\beta_male$) 
+Write down the equations for the model.
