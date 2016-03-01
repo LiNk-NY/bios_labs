@@ -45,7 +45,7 @@ estrogen$Group <- factor(estrogen$Group, labels = c("Placebo", "Active"))
 2. Run `head` on the dataset. Identify variables as level 1 or level 2 variables. Conduct descriptive analysis: describe dependent variable at each time point and by treatment group and report rates of missing data.
 
 ```{r}
-library(dplyr)
+suppressPackageStartupMessages(library(dplyr))
 head(estrogen, 10)
 group_by(estrogen, time) %>% summarize(avg_epds = mean(EPDS, na.rm = TRUE))
 group_by(estrogen, time, Group) %>% summarize(avg_epds = mean(EPDS, na.rm = TRUE))
@@ -69,10 +69,27 @@ ggplot(estrogen, aes(x = time, y = EPDS, group = id)) + geom_line() + facet_grid
 
 Plot regression line by group
 
-```{r}
+```{r, warning=FALSE}
 ggplot(estrogen, aes(x = time, y = EPDS)) + facet_grid(. ~ Group) + geom_smooth(method = "lm", se = FALSE)
 ```
 
 4. Investigate the serial correlation. Use AIC and BIC to compare the models.
 
-First obtain correlation between measurement occasions using the WIDE  data format (which you need to import from SPSS)
+First obtain correlation between measurement occasions using the WIDE data format (which you need to import from SPSS)
+
+```{r}
+estrogenW <- read_spss("estrogen-WIDEFORM.sav")
+cor(estrogenW[-1], use = "pairwise.complete.obs")
+```
+
+Unstructured covariance structure
+
+```{r}
+suppressPackageStartupMessages(library(nlme))
+fitmix <- lme(EPDS ~ 1, correlation = corSymm(),
+              data = estrogen, random = ~1 |  id,
+              na.action = na.omit,
+              control = list(msMaxIter=600, msMaxEval=600, 
+                 sing.tol=1e-20, msVerbose=FALSE))
+summary(fitmix)
+```
