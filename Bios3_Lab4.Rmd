@@ -1,0 +1,78 @@
+---
+title: "Biostats 3 Lab 4"
+date: "March 1, 2016"
+output: html_document
+---
+
+## Longitudinal Data Analysis using mixed models
+
+**_Data Source:_** Everitt and Rabe-Hesketh (2001) (dataset was modified for this class)
+
+**_Data Description:_** Double blind placebo controlled study of the use of estrogen given transdermally in the treatment of post-natal depression
+
+* 61 women with major depression that began within 3 months of childbirth and persisted for up to 18 months postnatally
+* Allocated randomly to
+    + active treatment (n=34; 3 months of transdermal 17 beta-estradiol 200 mg daily alone, then 3 months with added cyclical dydrogesterone 10 mg daily for 12 days each month) or 
+    + placebo (n=27; placebo patches and tablets according to same regime)
+
+**_Dataset name:_** `estrogen`
+
+**_Dataset Codebook:_**
+
+* Outcome variable: Edinburgh Postnatal Depression Scale (EPDS) - self-ratings of depressive symptoms: higher scores imply more depressed
+* Assessments made on six visits every two-months for a year after treatment began
+one assessments were made prior to the start of the treatment (time 0)
+* Treatment ( 1-active, 0-placebo)
+
+As usual, set your working directory to the __Downloads__ folder: (platform dependent)
+```{r, eval = FALSE}
+if(.Platform$OS.type == "unix") {
+    setwd("~/Downloads")
+} else if (.Platform$OS.type == "windows") {
+    setwd("~/../Downloads")
+}
+```
+__Note:__ Dependencies can be installed via the `install.packages` function. See `?install.packages` for details. 
+
+1. Import SPSS dataset into R: 
+
+```{r}
+library(haven)
+estrogen <- read_spss("estrogen-LONGFORM.sav")
+estrogen$Group <- factor(estrogen$Group, labels = c("Placebo", "Active"))
+```
+
+2. Run `head` on the dataset. Identify variables as level 1 or level 2 variables. Conduct descriptive analysis: describe dependent variable at each time point and by treatment group and report rates of missing data.
+
+```{r}
+library(dplyr)
+head(estrogen, 10)
+group_by(estrogen, time) %>% summarize(avg_epds = mean(EPDS, na.rm = TRUE))
+group_by(estrogen, time, Group) %>% summarize(avg_epds = mean(EPDS, na.rm = TRUE))
+```
+
+3. Generate individual trajectories graphs of EPDS as a function of time overall and within levels of treatment & regression  by group
+
+Plot individual trajectories with `base` graphics: (not so easy to do by group, see `ggplot2` below)
+
+```{r}
+interaction.plot(estrogen$time, estrogen$id, estrogen$EPDS, xlab = "Time", ylab = "EPDS", legend = FALSE, col = c(1:10), lwd = 2)
+```
+
+Plot individual trajectories by group easily with `ggplot2::facet_grid`
+
+```{r, warning=FALSE}
+library(ggplot2)
+ggplot(estrogen, aes(x = time, y = EPDS, group = id)) + geom_line()
+ggplot(estrogen, aes(x = time, y = EPDS, group = id)) + geom_line() + facet_grid(. ~ Group)
+```
+
+Plot regression line by group
+
+```{r}
+ggplot(estrogen, aes(x = time, y = EPDS)) + facet_grid(. ~ Group) + geom_smooth(method = "lm", se = FALSE)
+```
+
+4. Investigate the serial correlation. Use AIC and BIC to compare the models.
+
+First obtain correlation between measurement occasions using the WIDE  data format (which you need to import from SPSS)

@@ -1,18 +1,18 @@
 ---
-title: "Biostats 3 Lab 1"
+title: "Biostats 3 Lab 3"
 date: "February 20, 2016"
 output: html_document
 ---
 
 ## Logistic Regression using mixed models
 
-Dataset source: Raudenbush and Bryk (2002)
+**_Dataset source:_** Raudenbush and Bryk (2002)
 
-Data description: Data on whether or not children had to repeat a grade during their time in primary school (Thailand, 1988)
+**_Data description:_** Data on whether or not children had to repeat a grade during their time in primary school (Thailand, 1988)
 
-Dataset name: `Thai spss.SAV`
+**_Dataset name:_** `Thai spss.SAV`
 
-Data Codebook:
+**_Data Codebook:_**
 
 Rep1 (repeated grade 1= Yes, 0=No)
 Male (1=male, 0=female)

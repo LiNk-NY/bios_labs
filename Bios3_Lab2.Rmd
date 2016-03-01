@@ -1,17 +1,17 @@
 ---
-title: "Lab 2"
+title: "Biostats 3 Lab 2"
 date: "February 16, 2016"
 output: html_document
 ---
 
-Dataset 1: LangScores
+**_Dataset 1:_** LangScores
 
-Source: Snijders and Boskers (1999)
-
+**_Source:_** Snijders and Boskers (1999)
 
 We are interested in language scores `langPOST`
 
 First set your working directory to the __downloads__ folder: (platform dependent)
+
 ```{r, eval = FALSE}
 if(.Platform$OS.type == "unix") {
     setwd("~/Downloads")

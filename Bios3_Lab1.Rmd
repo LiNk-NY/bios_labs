@@ -4,15 +4,14 @@ date: "February 2, 2016"
 output: html_document
 ---
 
-Dataset 1: LangScores
+**_Dataset 1:_** LangScores
 
-Source: Snijders and Boskers (1999)
-
+**_Source:_** Snijders and Boskers (1999)
 
 We are interested in language scores `langPOST`
 
 1. Download from BlackBoard
-* SB.sas7bdat
+* `SB.sas7bdat`
 
 __Note:__ This is an RMarkdown file or .Rmd file. You can directly type your answers in this file and when done, click on the "Knit HTML" button at the top (from within RStudio). RMarkdown files are great for reproducibilty as they can include code and text all in one document.
 
@@ -120,9 +119,9 @@ schools <- do.call(cbind, dats)
 head(schools)
 ```
 
-The `by()` function can also be of use: 
+The `by()` function can also be of use: (you can run it on your own and see the result, here `eval = FALSE`)
 
-```{r}
+```{r, eval = FALSE}
 by(sb$langPOST, sb$schoolNR, function(x) { round(c(n = length(x), mean = mean(x, na.rm = TRUE), sd = sd(x, na.rm = TRUE), min = min(x), max = max(x)),3)})
 ```
 
