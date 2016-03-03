@@ -86,10 +86,69 @@ Unstructured covariance structure
 
 ```{r}
 suppressPackageStartupMessages(library(nlme))
-fitmix <- lme(EPDS ~ 1, correlation = corSymm(),
+fitmix1 <- lme(EPDS ~ 1, data = estrogen, random = ~1 |  id,
+              na.action = na.omit,
+              control = list(msMaxIter=600, msMaxEval=600,
+                 sing.tol=1e-20, msVerbose=FALSE))
+summary(fitmix1)
+```
+
+Compound Symmetry
+
+```{r}
+fitmix2 <- lme(EPDS ~ 1, correlation = corCompSymm(),
               data = estrogen, random = ~1 |  id,
               na.action = na.omit,
+              control = list(msMaxIter=600, msMaxEval=600,
+                 sing.tol=1e-20, msVerbose=FALSE))
+summary(fitmix2)
+```
+
+Autoregressive process of order 1
+
+```{r}
+fitmix3 <- lme(EPDS ~ 1, correlation = corAR1(),
+              data = estrogen, random = ~1 |  id,
+              na.action = na.omit,
+              control = list(msMaxIter=600, msMaxEval=600,
+                 sing.tol=1e-20, msVerbose=FALSE))
+summary(fitmix3)
+```
+
+Get all the AICs together
+
+```{r}
+fits <- list(unstr = fitmix1, compsym = fitmix2, ar1 = fitmix3)
+AICs <- sapply(fits, function(fit) {summary(fit)$AIC})
+AICs
+```
+ 
+5. Run an empty model, compute ICC
+
+Calculate the ICC from an `lme` model fit using the following function:
+
+```{r}
+ICClme <- function(out){
+  varests <- as.numeric(VarCorr(out)[1:2])
+  varests[1] / sum(varests)
+}
+```
+
+Run it on your empty model
+
+```{r}
+VarCorr(fitmix1)
+ICClme(fitmix1)
+```
+
+6. Include time as level 1 predictor. Are there significant individual differences in baseline depression scores?
+
+```{r}
+fitmix4 <- lme(EPDS ~ time, data = estrogen, random = ~1 |  id,
+              na.action = na.omit, method = "ML",
               control = list(msMaxIter=600, msMaxEval=600, 
                  sing.tol=1e-20, msVerbose=FALSE))
-summary(fitmix)
+summary(fitmix4)
+VarCorr(fitmix4)
+intervals(fitmix4)
 ```
