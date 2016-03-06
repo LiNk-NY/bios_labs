@@ -152,3 +152,97 @@ summary(fitmix4)
 VarCorr(fitmix4)
 intervals(fitmix4)
 ```
+
+7. Is there a significant effect of time on depression? If yes, what is the direction of the change? (output is the same as above)
+
+8. Does treatment received affect the rate at which depression changes over time?
+
+```{r}
+fitmix5 <- lme(EPDS ~ time + Group + time*Group, data = estrogen, random = ~ time |  id,
+              na.action = na.omit, method = "ML",
+              control = list(msMaxIter=600, msMaxEval=600, 
+                 sing.tol=1e-20, msVerbose=FALSE))
+summary(fitmix5)
+VarCorr(fitmix5)
+intervals(fitmix5)
+```
+
+9. Testing hypotheses about random effects.
+
+```{r}
+fitmix6 <- lme(EPDS ~ time + Group + time*Group, data = estrogen, random = ~ 1 |  id,
+              na.action = na.omit, control = list(msMaxIter=600, msMaxEval=600, 
+                 sing.tol=1e-20, msVerbose=FALSE))
+summary(fitmix6)
+VarCorr(fitmix6)
+intervals(fitmix6)
+```
+
+To get the p-value for this test, run:
+
+```{r}
+library(lmtest)
+lrtest(fitmix5, fitmix6)
+```
+
+10. Run lower level mediation analysis to test whether anxiety level mediated the relationship between time and depressions scores. Stratify this analysis by group. Interpret results in each group. 
+
+First, split dataset into two groups (2 element list)
+
+```{r}
+estro_grouped <- split(estrogen, estrogen$Group)
+names(estro_grouped)
+```
+
+Run mixed models for each dataset using an lapply function:
+
+```{r}
+lapply(estro_grouped, function(gDat) {
+        nlme::lme(EPDS ~ time, data = gDat, random = ~ time |  id,
+              na.action = na.omit, control = list(msMaxIter=600, msMaxEval=600, 
+                 sing.tol=1e-20, msVerbose=FALSE))
+})
+
+
+lapply(estro_grouped, function(gDat) {
+        nlme::lme(Anxiety_lagged ~ time, data = gDat, random = ~ time |  id,
+              na.action = na.omit, control = list(msMaxIter=600, msMaxEval=600, 
+                 sing.tol=1e-20, msVerbose=FALSE))
+})
+
+lapply(estro_grouped, function(gDat) {
+        nlme::lme(EPDS ~ time + Anxiety_lagged, data = gDat, random = ~ time |  id,
+              na.action = na.omit, control = list(msMaxIter=600, msMaxEval=600, 
+                 sing.tol=1e-20, msVerbose=FALSE))
+})
+```
+
+11. Use GEE for the same data. Try different working correlation matrices and compare results (fill out the table).
+
+```{r}
+library(gee)
+formula <- EPDS ~ time + Group + time*Group
+gee.ind <- gee(formula, id = id, family = gaussian,
+                        data = estrogen, corstr = "independence")
+summary(gee.ind)
+```
+
+If we want to get a little fancy and not write the formula for every correlation structure, we can do it inside an lapply or loop: 
+
+```{r}
+corStructs <- c("independence", "exchangeable", "unstructured")
+lapply(corStructs, function(cors) {
+        formula <- EPDS ~ time + Group + time*Group
+        gees <- gee(formula, id = id, family = gaussian,
+                    data = estrogen, corstr = cors, na.action = na.omit)
+        summary(gees)
+})
+```
+
+Not working (AR-1 estimation) 
+
+```{r, eval = FALSE}
+gee.ar <- gee(EPDS ~ time + Group + time*Group, id = id, na.action = na.omit,
+        family = gaussian, data = estrogen, corstr = "AR-M", Mv = 1)
+summary(gee.ar)
+```
