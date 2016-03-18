@@ -117,13 +117,13 @@ cat("C =", bigC <- sumWi-sumWi2/sumWi)
 cat("Tau^2 =", tau2 <- (qstat-df)/bigC)
 ```
 
-Weights random effects `wi.tau` and Weights random effects * Effect Size (`d`) `wiTi.tau`
+Weights random effects `wi.tau` and Weights random effects * Effect Size `wiTi.tau`
 
 ```{r}
 bor3[, c("wi.tau", "wiTi.tau")]
 ```
 
-Pooled effect size 2
+### Pooled effect size 2
 ```{r}
 cat("pooled effect size =", pes2 <- with(bor3, sum(wiTi.tau)/sum(wi.tau)))
 cat("standard error of pooled ES =", sepes2 <- with(bor3, sqrt(1/sum(wi.tau))))
