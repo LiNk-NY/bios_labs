@@ -39,7 +39,7 @@ where $C = \sum W_i-(\sum W_{i}^2/\sum W_i)$
 
 ```{r, warning=FALSE}
 library(readxl)
-bor <- read_excel("contmeta.xlsx")
+bor <- read_excel("data/contmeta.xlsx")
 bor
 ```
 
