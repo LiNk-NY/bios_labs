@@ -1,0 +1,134 @@
+---
+title: "Meta Analysis in R"
+date: "March 8, 2016"
+output: html_document
+---
+
+# Meta-analysis
+Dataset source: Borenstein et al. (2009)
+
+1. Compute precision for each study (1/variance)
+
+2. Fixed Effects Model 
+* compute weights: (1/variance)
+* pooled effect: $M = \sum_{i=1}^k W_i * effect size_i/\sum_{i=1}^k W_i$
+* its standard error SE: $\sqrt{1/\sum W_i}$
+* 95% CI for the pooled effect size: ES $\pm$ 1.96 * SE
+
+### Report pooled effect size and its 95% CI
+* Compute: Q statistic as  $Q = \sum_{i=1}^k W_i (effects size_i-summary effect)^2$
+    * df as the number of studies (k) - 1
+    * _p_-value 
+* Compute $I^2$ statistic (*100)
+
+**Interpret $Q$ and $I^2$**
+
+3. Random Effects
+* compute weights $1/(d^2+\tau^2)$ to estimate $\tau^2$ we use the DerSimonian-Laird method 
+$$
+T^2 = (Q - df)/C
+$$
+where $C = \sum W_i-(\sum W_{i}^2/\sum W_i)$
+* pooled effect $M = \sum_{i=1}^k W_i * effect size_i/\sum{i=1}^k W_i$
+* 95% CI for the pooled effect size: ES $\pm$ 1.96 * SE
+* z-value to test the null hypothesis that the mean effect is zero: Z = M/SE
+
+**Report pooled effect size and its 95% CI**
+
+# Continuous outcome
+
+```{r, warning=FALSE}
+library(readxl)
+bor <- read_excel("contmeta.xlsx")
+bor
+```
+
+Load packages
+
+```{r, warning=FALSE}
+suppressPackageStartupMessages(library(metafor))
+library(compute.es)
+library(MAd)
+```
+
+## Compute Standardized Mean Differences
+```{r}
+bor1 <- compute_dgs(n.treat, m.treat, sd.treat, n.plac, m.plac, sd.plac, data = bor, denom = "pooled.sd")
+```
+
+## Fixed Effects
+
+Compute the weights fixed effects
+```{r}
+bor2 <- wgts(g, var.g, bor1)
+```
+
+Sum of Weights Fixed Effects `sumWi`
+```{r}
+cat("sumWi =", sumWi <- sum(bor2$wi))
+```
+
+Weights Fixed Effects * Effect Size `wfees`
+```{r}
+cat("sumWfees =", sumWfees <- sum(bor2$wiTi))
+```
+
+pooled effect size `pes`
+```{r}
+cat("pes =", pes <- sumWfees/sumWi)
+```
+
+standard error of pooled ES `sepes`
+```{r}
+cat("sepes =", sepes <- sqrt(1/sumWi))
+```
+
+95% CI `lower` and `upper` limit
+```{r}
+cat("lower 95% CI =", lower <- pes-1.96*sepes)
+cat("upper 95% CI =", upper <- pes+1.96*sepes)
+```
+
+```{r}
+rbind(pes, sepes, lower, upper)
+```
+
+## Q statistic
+
+```{r}
+bor3 <- cbind(bor2, espes = bor2$g-pes, espes2 = (bor2$g-pes)^2, espes2wi = ((bor2$g-pes)^2)*bor2$wi)
+cat("qstat =", qstat <- sum(bor3$espes2wi))
+cat("df =", df <- nrow(bor3)-1)
+cat("p-value =", pchisq(qstat, df, lower.tail = FALSE))
+```
+
+Compute $I^2$
+
+```{r}
+cat("I^2 = ", istat <- (qstat-df)/qstat*100)
+```
+
+## Random Effects
+
+```{r}
+bor3$wi2 <- bor3$wi^2
+sumWi2 <- sum(bor3$wi2)
+cat("C =", bigC <- sumWi-sumWi2/sumWi)
+cat("Tau^2 =", tau2 <- (qstat-df)/bigC)
+```
+
+Weights random effects `wi.tau` and Weights random effects * Effect Size (`d`) `wiTi.tau`
+
+```{r}
+bor3[, c("wi.tau", "wiTi.tau")]
+```
+
+Pooled effect size 2
+```{r}
+cat("pooled effect size =", pes2 <- with(bor3, sum(wiTi.tau)/sum(wi.tau)))
+cat("standard error of pooled ES =", sepes2 <- with(bor3, sqrt(1/sum(wi.tau))))
+cat("95% CI lower =", lower2 <- pes2-1.96*sepes2)
+cat("95% CI upper =", upper2 <- pes2+1.96*sepes2)
+cat("Z test for Ho M=0 is", z <- pes2/sepes2)
+cat("p-value = ", 2*(1-pnorm(abs(z))))
+```
