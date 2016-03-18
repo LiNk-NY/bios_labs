@@ -58,35 +58,44 @@ bor1 <- compute_dgs(n.treat, m.treat, sd.treat, n.plac, m.plac, sd.plac, data = 
 
 ## Fixed Effects
 
-Compute the weights fixed effects
+Compute the weights fixed effects / precision `wi`
 ```{r}
 bor2 <- wgts(g, var.g, bor1)
+bor2[, "wi", drop = FALSE]
 ```
 
 Sum of Weights Fixed Effects `sumWi`
+
+__Note:__ The `cat` function is used to print text to the console for readability of results. 
 ```{r}
-cat("sumWi =", sumWi <- sum(bor2$wi))
+cat("Sum of weights fixed effects =",
+    sumWi <- sum(bor2$wi))
 ```
 
 Weights Fixed Effects * Effect Size `wfees`
 ```{r}
-cat("sumWfees =", sumWfees <- sum(bor2$wiTi))
+cat("Sum of weights fixed effects * ES =",
+    sumWfees <- sum(bor2$wiTi))
 ```
 
 pooled effect size `pes`
 ```{r}
-cat("pes =", pes <- sumWfees/sumWi)
+cat("Pooled effect size =",
+    pes <- sumWfees/sumWi)
 ```
 
 standard error of pooled ES `sepes`
 ```{r}
-cat("sepes =", sepes <- sqrt(1/sumWi))
+cat("Standard Error of Pooled ES =",
+    sepes <- sqrt(1/sumWi))
 ```
 
 95% CI `lower` and `upper` limit
 ```{r}
-cat("lower 95% CI =", lower <- pes-1.96*sepes)
-cat("upper 95% CI =", upper <- pes+1.96*sepes)
+cat("lower 95% CI =",
+    lower <- pes-1.96*sepes)
+cat("upper 95% CI =",
+    upper <- pes+1.96*sepes)
 ```
 
 ```{r}
@@ -97,15 +106,19 @@ rbind(pes, sepes, lower, upper)
 
 ```{r}
 bor3 <- cbind(bor2, espes = bor2$g-pes, espes2 = (bor2$g-pes)^2, espes2wi = ((bor2$g-pes)^2)*bor2$wi)
-cat("qstat =", qstat <- sum(bor3$espes2wi))
-cat("df =", df <- nrow(bor3)-1)
-cat("p-value =", pchisq(qstat, df, lower.tail = FALSE))
+cat("Q statistic =",
+    qstat <- sum(bor3$espes2wi))
+cat("df =",
+    df <- nrow(bor3)-1)
+cat("p-value =",
+    pchisq(qstat, df, lower.tail = FALSE))
 ```
 
 Compute $I^2$
 
 ```{r}
-cat("I^2 = ", istat <- (qstat-df)/qstat*100)
+cat("I^2 = ",
+    istat <- (qstat-df)/qstat*100)
 ```
 
 ## Random Effects
@@ -113,8 +126,10 @@ cat("I^2 = ", istat <- (qstat-df)/qstat*100)
 ```{r}
 bor3$wi2 <- bor3$wi^2
 sumWi2 <- sum(bor3$wi2)
-cat("C =", bigC <- sumWi-sumWi2/sumWi)
-cat("Tau^2 =", tau2 <- (qstat-df)/bigC)
+cat("C =",
+    bigC <- sumWi-sumWi2/sumWi)
+cat("Tau^2 =",
+    tau2 <- (qstat-df)/bigC)
 ```
 
 Weights random effects `wi.tau` and Weights random effects * Effect Size `wiTi.tau`
@@ -125,10 +140,16 @@ bor3[, c("wi.tau", "wiTi.tau")]
 
 ### Pooled effect size 2
 ```{r}
-cat("pooled effect size =", pes2 <- with(bor3, sum(wiTi.tau)/sum(wi.tau)))
-cat("standard error of pooled ES =", sepes2 <- with(bor3, sqrt(1/sum(wi.tau))))
-cat("95% CI lower =", lower2 <- pes2-1.96*sepes2)
-cat("95% CI upper =", upper2 <- pes2+1.96*sepes2)
-cat("Z test for Ho M=0 is", z <- pes2/sepes2)
-cat("p-value = ", 2*(1-pnorm(abs(z))))
+cat("pooled effect size =",
+    pes2 <- with(bor3, sum(wiTi.tau)/sum(wi.tau)))
+cat("standard error of pooled ES =",
+    sepes2 <- with(bor3, sqrt(1/sum(wi.tau))))
+cat("95% CI lower =",
+    lower2 <- pes2-1.96*sepes2)
+cat("95% CI upper =",
+    upper2 <- pes2+1.96*sepes2)
+cat("Z test for Ho M=0 is",
+    z <- pes2/sepes2)
+cat("p-value = ",
+    2*(1-pnorm(abs(z))))
 ```
