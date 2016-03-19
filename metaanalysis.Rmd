@@ -132,3 +132,14 @@ cat("95% CI upper =", upper2 <- pes2+1.96*sepes2)
 cat("Z test for Ho M=0 is", z <- pes2/sepes2)
 cat("p-value = ", 2*(1-pnorm(abs(z))))
 ```
+
+```{r}
+boren <- metacont(n.treat, m.treat, sd.treat, n.plac, m.plac, sd.plac, data = bor, studlab = study)
+forest(boren)
+```
+
+# Binary Outcome
+
+```{r}
+bin <- read_excel("data/binmeta.xlsx")
+```
