@@ -164,3 +164,10 @@ forest(boren)
 ```{r}
 bin <- read_excel("data/binmeta.xlsx")
 ```
+
+Compute the odds ratio
+```{r}
+bin2 <- cbind(bin, OR = with(bin, (e.treat*no.cont)/(e.cont*no.treat)))
+bin2 <- cbind(bin2, lnOR = log(bin2$OR))
+bin3 <- metabin(e.treat, n.treat, e.cont, n.cont, studlab = study, data = bin)
+```
