@@ -166,8 +166,65 @@ bin <- read_excel("data/binmeta.xlsx")
 ```
 
 Compute the odds ratio
+__Note:__ Here we use `dplyr` for convenience.
 ```{r}
-bin2 <- cbind(bin, OR = with(bin, (e.treat*no.cont)/(e.cont*no.treat)))
-bin2 <- cbind(bin2, lnOR = log(bin2$OR))
-bin3 <- metabin(e.treat, n.treat, e.cont, n.cont, studlab = study, data = bin)
+bin2 <- bin %>% mutate(OR = (e.treat*no.cont)/(e.cont*no.treat), lnOR = log(OR))
+bin2$v.lnOR <- bin2 %>% select(e.treat, no.treat, e.cont, no.cont) %>%
+  sapply(function(x) {1/x}) %>% apply(1, sum)
+```
+
+Fixed Effects Calculation 
+
+```{r}
+bin2 <- bin2 %>% mutate(wi = 1/v.lnOR, wfees = wi*lnOR)
+```
+
+Pooled Effect Size (logOR)
+
+```{r}
+resultsFixed <- summarize(bin2, pes = sum(wfees)/sum(wi), sepes = sqrt(1/sum(wi)), lower = pes-1.96*sepes, upper = pes+1.96*sepes, pesOR = exp(pes), lowerOR = exp(lower), upperOR = exp(upper)) %>% t
+colnames(resultsFixed) <- "fixed"
+resultsFixed
+```
+
+For the Q statistic: 
+
+```{r}
+bin2 <- bin2 %>% mutate(espes = lnOR-stats$pes, espes2 = espes*espes, espes2wi = espes2*wi)
+resultsQ <- t(bin2 %>% summarize(Q = sum(espes2wi),
+                                    df = nrow(.)-1,
+                                    p.value = pchisq(abs(Q),
+                                                     df,
+                                                     lower.tail = FALSE)))
+resultsQ
+```
+
+$I^2$ Calculation
+```{r}
+cat("I^2 =", I2 <- (resultsQ["Q",]-resultsQ["df",])/resultsQ["Q",]*100)
+```
+
+Random Effects 
+For $\tau^2$, square precision (`wi`)
+```{r}
+bin2$wi2 <- with(bin2, wi*wi)
+sumwi2 <- sum(bin2$wi2)
+sumwi <- sum(bin2$wi)
+cat("C =",
+    bigC2 <- sumwi-sumwi2/sumwi)
+cat("Tau^2 =",
+    Tau2 <- (results["Q",]-results["df",])/bigC2)
+
+```
+
+Weights Random Effects (`wre`)
+```{r}
+bin3 <- bin2 %>% mutate(wre = 1/(v.lnOR+Tau2), wrees = lnOR*wre)
+bin3 %>% select(wre, wrees)
+```
+
+```{r}
+resultsRandom <- bin3 %>% summarize(pes =  sum(wrees)/sum(wre), sepes = sqrt(1/sum(wre)), lower = pes-1.96*sepes, upper = pes+1.96*sepes, pesOR = exp(pes), lowerOR = exp(lower), upperOR = exp(upper)) %>% t
+colnames(resultsRandom) <- "random"
+resultsRandom
 ```
