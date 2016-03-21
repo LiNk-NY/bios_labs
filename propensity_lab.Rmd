@@ -1,0 +1,43 @@
+---
+title: "Propensity Score Matching in R"
+date: "March 22, 2016"
+output: html_document
+---
+
+__Dataset:__ Chapt3 (Source: Analysis of Observational Health Care Data using SAS)
+
+__Source:__ Analysis of Observational health care data using SAS
+
+__Data Description:__ A total of 5162 patients undergoing invasive cardiac procedure in Ontario, Canada (data obtained from clinical registry maintained at the Cardiac Care Network of Ontario (CCN). Patients underwent a PCI with placement of either DES or BMS. Data was modified for this assignment.
+
+|Variable name |Description|
+|---------------|-----------|
+|acutemi |Acute Myocardial Infraction (1=yes, 0=no) |
+|cens | Not used in this analysis|
+|diabetic | Diabetes (1-yes, 0=no)|
+|female | Gender (0-male, 1-female)|
+|height | height|
+|mort6mo | Death within 6 months|
+|stent | Stent (1-yes, 0=no)|
+|trtm | treatment variable (DES=1 vs. BMS=0)|
+|tte | Not used in this analysis|
+
+Load the dataset using `haven`:
+
+```{r}
+library(haven)
+library(dplyr)
+chap3 <- read_sas("data/Chapter3_Example_Data.sas7bdat")
+head(chap3)
+dim(chap3)
+sapply(chap3[, c(3,5,6,7)], table)
+```
+
+1. Assess the distribution of baseline characteristics:
+
+```{r}
+group_by(chap3, trtm) %>% summarize(avg_ht = mean(height), n(), sd = sd(height), min = min(height), max = max(height))
+t.test(height ~ trtm, data = chap3)
+lapply(chap3[, c("stent", "female", "diabetic", "acutemi")], function(var) { cbind(xtabs(~ trtm + var, data = chap3), prop.table(table(chap3$trtm, var))) })
+```
+
