@@ -36,8 +36,15 @@ sapply(chap3[, c(3,5,6,7)], table)
 1. Assess the distribution of baseline characteristics:
 
 ```{r}
-group_by(chap3, trtm) %>% summarize(avg_ht = mean(height), n(), sd = sd(height), min = min(height), max = max(height))
+group_by(chap3, trtm) %>% summarize(avg_ht = mean(height), n(),
+                                    sd = sd(height), min = min(height),
+                                    max = max(height))
 t.test(height ~ trtm, data = chap3)
-lapply(chap3[, c("stent", "female", "diabetic", "acutemi")], function(var) { cbind(xtabs(~ trtm + var, data = chap3), prop.table(table(chap3$trtm, var))) })
+lapply(chap3[, c("stent", "female", "diabetic", "acutemi")], function(var) {
+    cbind(xtabs(~ trtm + var, data = chap3),
+          prop.table(table(chap3$trtm, var)))
+    })
 ```
+
+__Note:__ You may also use the `epicalc` package to create tables.
 
