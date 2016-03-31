@@ -46,5 +46,11 @@ lapply(chap3[, c("stent", "female", "diabetic", "acutemi")], function(var) {
     })
 ```
 
-__Note:__ You may also use the `epicalc` package to create tables.
+__Note:__ You may also use the `gmodels` package to create tables.
+
+```{r}
+library(gmodels)
+CrossTable(chap3$trtm, chap3$stent, prop.chisq = FALSE)
+chisq.test(table(chap3$trtm, chap3$stent))
+```
 
