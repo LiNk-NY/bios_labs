@@ -72,7 +72,10 @@ ps_df$treatment <- factor(ps_df$treatment, levels = c(0,1), labels = paste("Trea
 Using the `lattice` package:
 
 ```{r}
-histogram(~ps_score | treatment, data = ps_df, type = "count", col = "darkgreen")
+histogram(~ps_score | treatment, data = ps_df,
+          type = "count",
+          col = "darkgreen",
+          xlab = "Probability of receiving treatment")
 ```
 
 Using the `ggplot2` package (optional but recommended):
