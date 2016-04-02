@@ -57,21 +57,25 @@ chisq.test(table(chap3$trtm, chap3$stent))
 2. R code for fitting a propensity score model
 
 ```{r}
-fit1 <- glm(trtm ~ height + stent + female + diabetic + acutemi, data = chap3, family = binomial)
+fit1 <- glm(trtm ~ height + stent + female + diabetic + acutemi,
+            data = chap3, family = binomial)
 summary(fit1)
 ```
 
 Take the predicted probabilities of being treated along with treatment.
 
 ```{r}
-ps_df <- data.frame(ps_score = predict(fit1, type = "response"), treatment = chap3$trtm)
+ps_df <- cbind(data.frame(ps_score = predict(fit1, type = "response"),
+               chap3))
 head(ps_df)
-ps_df$treatment <- factor(ps_df$treatment, levels = c(0,1), labels = paste("Treatment type:", c("BMS", "DES")))
+ps_df$treatment <- factor(ps_df$trtm, levels = c(0,1),
+                          labels = paste("Treatment type:", c("BMS", "DES")))
 ```
 
 Using the `lattice` package:
 
 ```{r}
+library(lattice)
 histogram(~ps_score | treatment, data = ps_df,
           type = "count",
           col = "darkgreen",
@@ -82,7 +86,13 @@ Using the `ggplot2` package (optional but recommended):
 
 ```{r}
 library(ggplot2)
-ggplot(ps_df, aes(x = ps_score)) + geom_histogram(color = "white") + facet_wrap(~treatment) +
+ggplot(ps_df, aes(x = ps_score)) + geom_histogram(color = "white", binwidth = 0.02) + facet_wrap(~treatment) +
   xlab("Probability of receiving treatment") + theme_bw()
+```
+
+
+```{r}
+fit2 <- glm(mort6mo ~ trtm + ps_score + height + stent + female + diabetic + acutemi, data = ps_df, family = binomial)
+summary(fit2)
 ```
 
