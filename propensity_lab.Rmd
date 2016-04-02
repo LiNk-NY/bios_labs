@@ -90,9 +90,28 @@ ggplot(ps_df, aes(x = ps_score)) + geom_histogram(color = "white", binwidth = 0.
   xlab("Probability of receiving treatment") + theme_bw()
 ```
 
+Fit a logistic regresssion using the propensity score and add the generalized logit of the score
+
+Logistic regression for comparing risk of death within 6 months:
 
 ```{r}
+library(gtools)
 fit2 <- glm(mort6mo ~ trtm + ps_score + height + stent + female + diabetic + acutemi, data = ps_df, family = binomial)
 summary(fit2)
+ps_df$logit_ps <- logit(ps_df$ps_score)
+```
+
+Patients will now be matched on the logit of the propensity score using clipper of 0.2 standard deviations of the logit of the propensity score.
+
+Compute the standard deviation of the logit of the propensity score: 
+```{r}
+sd(ps_df$logit_ps)
+clip <- 0.2*sd(ps_df$logit_ps)
+```
+
+```{r}
+library(MatchIt)
+m.out <- matchit(trtm ~ logit_ps, caliper = clip, method = "nearest", data = ps_df)
+m.dat <- match.data(m.out)
 ```
 
