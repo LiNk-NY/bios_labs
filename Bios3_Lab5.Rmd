@@ -1,0 +1,158 @@
+---
+title: "Instrumental Variable Lab 5"
+author: "Marcel Ramos"
+date: "March 29, 2016"
+output: html_document
+---
+
+**Dataset**: sesameoriginal 
+
+**Source**: Gelman and Hill, 2007
+
+Based on Hill and Sobel 
+
+Code book with variable names 
+
+__*id*__: subject identification number
+
+__*site*__:
+
+   1. Three to five year old disadvantaged children from inner
+        city areas in various parts of the country.
+   2. Four year old advantaged suburban children. 
+   3. Advantaged rural children.
+   4. Disadvantaged rural children.
+   5. Disadvantaged Spanish speaking children.
+
+__*sex*__: 
+
+   1. male
+   2. female
+
+__*age*__: age in months
+
+__*viewcat*__: frequency of viewing
+
+   1. rarely watched the show
+   2. once or twice a week 
+   3. three to five times a week
+   4. watched the show on average more than 5 times a week
+
+__*setting*__: setting in which Sesame Street was viewed, 1=home 2=school
+
+__*viewenc*__:
+
+   1. child encouraged to watch
+   2. child not encouraged to watch
+
+__*prebody*__:  pretest on knowledge of body parts (scores range from 0-32)
+
+__*prelet*__:  pretest on letters (scores range from 0-58)
+
+__*preform*__: pretest on forms (scores range from 0-20)
+
+__*prenumb*__: pretest on numbers (scores range from 0-54)
+
+__*prerelat*__: pretest on relational terms (scores range from 0-17)
+
+__*preclasf*__: pretest on classification skills
+
+__*postbody*__: posttest on knowledge of body parts (0-32)
+
+__*postlet*__:  posttest on letters (0-58)
+
+__*postform*__:  posttest on forms (0-20)
+
+__*postnumb*__: posttest on numbers (0-54)
+
+__*postrelat*__: posttest on relational terms (0-17)
+
+__*postclasf*__:  posttest on classification skills
+
+__*peabody*__:  mental age score obtained from administration of the Peabody Picture Vocabulary test as a pretest measure of vocabulary maturity
+
+1. Data preparation: recoding variables of interest
+
+`postlet` (**outcome Y**)
+
+`viewenc` (**instrument Z**) (2-not enc, 1-enc) recode into encour (1-yes, 0-no)
+
+`viewcat` (**treatment T**) (1 if viewcat is 2,3,4; 0 otherwise) recode into regular (1-yes, 0-no)
+
+
+Load the data into R: 
+
+```{r}
+library(haven)
+sesame <- read_sas("data/sesameoriginal.sas7bdat")
+```
+
+Use the `ifelse` function to quickly recode dichotomous variables: 
+
+```{r}
+sesame$regular <- ifelse(sesame$viewcat == 1, 0L, 1L)
+table(sesame$regular)
+
+sesame$encour <- ifelse(sesame$viewenc == 2, 0L, 1L)
+table(sesame$encour)
+```
+
+2. Estimate the **causal effect of encouragement on regular viewing** (i.e. the difference in means from the t-test results) and test whether this effect is significantly different from zero.
+
+```{r}
+regV <- lm(regular ~ encour, data = sesame)
+summary(regV)
+```
+
+a) Do a crosstab of regular (T) and enc (Z) that reports the relative frequency of each row (not regular viewer, regular viewer) within each column (encouraged, not encouraged) to see that your answer is also equal to the percent of compliers (which can be calculated as 1 minus the percent of nevertakers (encouraged but didn’t watch) minus the percentage of always takers (not encouraged but did watch).
+
+3. **Did encouragement result in higher tests scores on knowledge of letters (postlet) on average?**  Estimate the effect of encouragement on postlet (again it’s just the difference in means).  Record both this estimate and its standard error.
+
+```{r}
+post <- lm(postlet ~ encour, data = sesame)
+summary(post)
+```
+
+4. Estimate the causal effect of watching on test scores. Provide a causal interpretation of this estimate.
+
+```{r}
+unname(coef(post)[2]/coef(regV)[2])
+```
+
+5. Comment on the plausibility of the IV assumptions for this study. 
+
+6. Calculate “as treated” and “per protocol” estimates and comment. Why might these be biased for estimating the causal effect of watching on test scores?
+
+```{r}
+asT <- lm(postlet ~ regular, data = sesame)
+perP <- lm(postlet ~ regular, data = sesame, subset = ((sesame$encour == 1L & sesame$regular == 1L) | (sesame$encour == 0L & sesame$regular == 0L)))
+```
+
+7. Perform 2SLS for the Sesame Date 
+
+a) The first step is to regress the “treatment” variable (`regular`) on the randomized instrument, encouragement to watch (`encour`) (regression of $T$ on $Z$) and save the predicted  $\hat{T}$
+
+```{r}
+mod1 <- lm(regular ~ encour, data = sesame)
+sesame$py <- predict(mod1)
+head(sesame)
+```
+
+b) Then we plug predicted values of instrument (`encour`) into the equation predicting the letter recognition outcome, $Y$.  Now the coefficient of $\hat{T}$ (`py`) is the estimate of the causal effect of watching Sesame Street on letter recognition for those induced to watch by the experiment. Record the estimates (coeff. value and standard error).  This second-stage regression does not give the correct standard error.
+
+```{r}
+mod2 <- lm(postlet ~ py, data = sesame)
+summary(mod2)
+```
+
+8. Use the `ivreg` function in R to run a two-stage least squares regression. Record the coefficient for treatment (`regular`) and its standard error. 
+
+```{r}
+suppressPackageStartupMessages(library(AER))
+ivy <- ivreg(postlet ~ regular | encour, data = sesame)
+```
+
+a) Is your IV estimate of the effect of watching Sesame Street on letter knowledge acquisition obtained here the same as your IV estimates from before? 
+
+b) Is the standard error obtained from `ivreg` procedure the same as the standard error from before?
+
