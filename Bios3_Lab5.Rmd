@@ -156,3 +156,20 @@ a) Is your IV estimate of the effect of watching Sesame Street on letter knowled
 
 b) Is the standard error obtained from `ivreg` procedure the same as the standard error from before?
 
+9. Compare and contrast you ITT estimates, per-protocol and as-treated estimates and IV estimates (and standard errors).
+
+10. It turns out that the randomization for this experiment took place within sites and settings; it is therefore appropriate to control for these covariates in estimating the treatment effect. Additionally, pre-test scores are available that are highly predictive of post-test scores. Our preferred model would control for all of these predictors.
+
+a) Include setting and site variables in your model (note: for simplicity of illustration and also due to the complication that one `site` × `setting` combination has no observations we only include main effects here, normally we would include all the interactions). What is the new IV estimate?
+
+```{r}
+ivy2 <- ivreg(postlet ~ regular + factor(site) + factor(setting) | encour + factor(site) + factor(setting), data = sesame)
+summary(ivy2)
+```
+
+b) Now add to the models pre-treatment variables: pre-treatment letter recognition scores (`prelet`) and pre-test Peabody Picture Vocabulary scores (`peabody` – see variable description in the codebook). Report the IV estimate and compare to previously obtained IV estimates.
+
+```{r}
+ivy3 <- ivreg(postlet ~ regular + factor(site) + factor(setting) + prelet + peabody | encour + factor(site) + factor(setting) + prelet + peabody, data = sesame)
+```
+c) What about assumptions now when we have more information on randomization process?
