@@ -106,12 +106,22 @@ Patients will now be matched on the logit of the propensity score using clipper 
 Compute the standard deviation of the logit of the propensity score: 
 ```{r}
 sd(ps_df$logit_ps)
-clip <- 0.2*sd(ps_df$logit_ps)
 ```
 
+Run the `matchit` function with method set to `nearest` (considered greedy matching when `ratio` argument not defined - _default = 1_): 
+
+__Note:__ `caliper` defined as the number of standard deviations of the distance measure within which to draw control units.
+
 ```{r}
-library(MatchIt)
-m.out <- matchit(trtm ~ logit_ps, caliper = clip, method = "nearest", data = ps_df)
+suppressPackageStartupMessages(library(MatchIt))
+m.out <- matchit(trtm ~ height + stent + female + diabetic + acutemi, caliper = 0.2, method = "nearest", data = chap3)
+summary(m.out)
 m.dat <- match.data(m.out)
+```
+
+The variable `distance` in the dataset indicates the propensity score: 
+
+```{r}
+head(m.dat)
 ```
 
