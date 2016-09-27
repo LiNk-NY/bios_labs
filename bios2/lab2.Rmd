@@ -1,12 +1,12 @@
 ---
-title: "Bios 2 Lab"
-author: Waldron Lab
-date: `r sys.time()`
+title: "Biostatistics Lab"
+author: "Waldron Lab"
+date: "`r format(Sys.time(),'%B %d, %Y)`"
 output: html_document
 ---
 
-For this exercise we, will be using part of the Census dataset and a prison-admissions
-dataset from `TheUpshot` NYTimes. 
+For this exercise we, will be using part of the Census dataset and a
+prison-admissions dataset from `TheUpshot` from the NYTimes. 
 
 ```{r}
 ##  download data
@@ -17,13 +17,48 @@ padmissions <- read_csv("https://raw.githubusercontent.com/TheUpshot/prison-admi
 ## Correcting a parse failure (error in data)
 padmissions[1796, "admissions2014"] <- 1403
 
+## give the file we will download a name
 localFile <- "~/Downloads/est14ALL.xls"
+
+## point to the file with URL
 censusWebFile <- "https://www.census.gov/did/www/saipe/downloads/estmod14/est14ALL.xls"
+
+## download file to local address
 download.file(url = censusWebFile, destfile = localFile)
 
 ## Note: If download not working, run this line below
 ## browseURL(dirname(censusWebFile))
 ## Select either the TXT or XLS file (first row in table)
 
-census <- read_excel(censusFile, skip = 2)
+census <- read_excel(localFile, skip = 3)
 ```
+
+## Merge datasets using dplyr
+
+```{r}
+library(dplyr)
+names(census) <- gsub(" |,|Code", "", names(census))
+census %>% group_by(StateFIPSCode, CountyFIPSCode, PostalCode, Name)
+test <- census[, 1:7]
+head(test)
+
+namesNotWanted <- c("PostalCode", "Name", "StateFIPSCode", "CountyFIPSCode")
+
+censusVars <- grep("^[^90]", names(census), value = TRUE) %>% (function(x) {x[!x %in% namesNotWanted]})
+
+dataColumns <- sapply(0:2, function(num) match(censusVars, names(census))+num)
+
+extractCols <- cbind(matrix(rep(1:4, nrow(dataColumns)), ncol = 4, byrow = TRUE), dataColumns)
+
+listFrames <- apply(extractCols, 1, function(colIndex) census[, colIndex])
+gather(listFrames[[1]], StateFIPS, CountyFIPS, Postal, Name, 5:7)
+
+census_data <- do.call(rbind, lapply(listFrames, function(data) {
+                          gather(data, estimate, value, 5:7)
+}))
+
+gather(census, namesNotWanted, censusVars, match(censusVars, names(census))
+census %>% mutate(cfips = paste0(StateFIPSCode, CountyFIPSCode))
+```
+
+
