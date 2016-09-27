@@ -1,0 +1,29 @@
+---
+title: "Bios 2 Lab"
+author: Waldron Lab
+date: `r sys.time()`
+output: html_document
+---
+
+For this exercise we, will be using part of the Census dataset and a prison-admissions
+dataset from `TheUpshot` NYTimes. 
+
+```{r}
+##  download data
+library(readr)
+library(readxl)
+
+padmissions <- read_csv("https://raw.githubusercontent.com/TheUpshot/prison-admissions/master/county-prison-admissions.csv")
+## Correcting a parse failure (error in data)
+padmissions[1796, "admissions2014"] <- 1403
+
+localFile <- "~/Downloads/est14ALL.xls"
+censusWebFile <- "https://www.census.gov/did/www/saipe/downloads/estmod14/est14ALL.xls"
+download.file(url = censusWebFile, destfile = localFile)
+
+## Note: If download not working, run this line below
+## browseURL(dirname(censusWebFile))
+## Select either the TXT or XLS file (first row in table)
+
+census <- read_excel(censusFile, skip = 2)
+```
