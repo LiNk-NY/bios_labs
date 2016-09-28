@@ -1,7 +1,7 @@
 ---
 title: "Biostatistics Lab"
 author: "Waldron Lab"
-date: "`r format(Sys.time(),'%B %d, %Y)`"
+date: "`r format(Sys.time(),'%B %d, %Y')`"
 output: html_document
 ---
 
@@ -13,12 +13,14 @@ prison-admissions dataset from `TheUpshot` from the NYTimes.
 First, the Upshot data on prison admissions:
 
 ```{r}
-##  download data
 library(readr)
 library(readxl)
-
 padmissions <- read_csv("https://raw.githubusercontent.com/TheUpshot/prison-admissions/master/county-prison-admissions.csv")
-## Correcting a parse failure (error in data) - correct 1,403 to 1403
+```
+
+Correcting a parse failure (error in data) - correct 1,403 to 1403
+
+```{r}
 padmissions[1796, "admissions2014"] <- 1403
 ```
 

@@ -1,0 +1,87 @@
+---
+title: "Biostatistics Lab - loglinear models"
+author: "Waldron Lab"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: html_document
+---
+
+# Introduction
+
+For this exercise we, will be using part of the Census dataset and a
+prison-admissions dataset from `TheUpshot` from the NYTimes. Take some time to look at both datasets:
+
+1) Upshot incarceration data, https://github.com/TheUpshot/prison-admissions (use 2014 data)
+2) Census poverty data, https://www.census.gov/did/www/saipe/data/statecounty/data/2014.html
+
+
+# Data acquisition
+
+We'll give you some help with data acquisions.
+
+First, the Upshot data on prison admissions:
+
+```{r}
+##  download data
+library(readr)
+library(readxl)
+
+padmissions <- read_csv("https://raw.githubusercontent.com/TheUpshot/prison-admissions/master/county-prison-admissions.csv")
+```
+
+What happened in this "parsing error"?  Figure it out, then correct it:
+
+```{r}
+padmissions[1796, "admissions2014"] <- 1403
+```
+
+Then, the 2014 census data on poverty:
+
+```{r}
+## give the file we will download a name
+localFile <- "~/Downloads/est14ALL.xls"
+
+## point to the file with URL
+censusWebFile <- "https://www.census.gov/did/www/saipe/downloads/estmod14/est14ALL.xls"
+
+## download file to local address
+download.file(url = censusWebFile, destfile = localFile)
+
+## Note: If download not working, run this line below
+## browseURL(dirname(censusWebFile))
+## Select either the TXT or XLS file (first row in table)
+
+census <- read_excel(localFile, skip = 3)
+names(census) = make.unique(names(census))
+names(census) <- gsub(" |,", "", names(census))
+```
+
+```{r}
+library(dplyr)
+census <- select(census, -contains("90"))
+census <- mutate(census, fips = paste0(StateFIPSCode, CountyFIPSCode))
+```
+
+
+# Join the datasets on 5-digit FIPS state/county codes using dplyr
+
+Merge datasets using dplyr. `inner_join()` keeps only records that can be matched on FIPS code.
+
+# Descriptives
+
+Using joined dataset make histograms of incarceration rates, poverty % variables, and income variable.
+
+Make some other descriptive statistics.
+
+# Univariate log-linear Poisson model
+
+Fit a univariate log-linear model with #/10K incarcerated as y and poverty % (all ages) as x.
+
+Make residuals plots.  How is the fit?
+
+Do this for poverty of different age groups. Which is a stronger predictor, ignoring the issues of model fit?
+
+# Multivariate log-linear Poisson model
+
+How collinear are the different poverty variables and the household income variable?
+
+Try fiting and assessing a multivariate GLM using a Poisson error model and log-linear link function, using the poverty and income variables. Comment.
