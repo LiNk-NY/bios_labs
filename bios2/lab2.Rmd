@@ -8,15 +8,23 @@ output: html_document
 For this exercise we, will be using part of the Census dataset and a
 prison-admissions dataset from `TheUpshot` from the NYTimes. 
 
+# Data acquisition
+
+First, the Upshot data on prison admissions:
+
 ```{r}
 ##  download data
 library(readr)
 library(readxl)
 
 padmissions <- read_csv("https://raw.githubusercontent.com/TheUpshot/prison-admissions/master/county-prison-admissions.csv")
-## Correcting a parse failure (error in data)
+## Correcting a parse failure (error in data) - correct 1,403 to 1403
 padmissions[1796, "admissions2014"] <- 1403
+```
 
+Then, the 2014 census data on poverty:
+
+```{r}
 ## give the file we will download a name
 localFile <- "~/Downloads/est14ALL.xls"
 
@@ -31,34 +39,46 @@ download.file(url = censusWebFile, destfile = localFile)
 ## Select either the TXT or XLS file (first row in table)
 
 census <- read_excel(localFile, skip = 3)
+names(census) = make.unique(names(census))
+names(census) <- gsub(" |,", "", names(census))
 ```
-
-## Merge datasets using dplyr
 
 ```{r}
 library(dplyr)
-names(census) <- gsub(" |,|Code", "", names(census))
-census %>% group_by(StateFIPSCode, CountyFIPSCode, PostalCode, Name)
-test <- census[, 1:7]
-head(test)
-
-namesNotWanted <- c("PostalCode", "Name", "StateFIPSCode", "CountyFIPSCode")
-
-censusVars <- grep("^[^90]", names(census), value = TRUE) %>% (function(x) {x[!x %in% namesNotWanted]})
-
-dataColumns <- sapply(0:2, function(num) match(censusVars, names(census))+num)
-
-extractCols <- cbind(matrix(rep(1:4, nrow(dataColumns)), ncol = 4, byrow = TRUE), dataColumns)
-
-listFrames <- apply(extractCols, 1, function(colIndex) census[, colIndex])
-gather(listFrames[[1]], StateFIPS, CountyFIPS, Postal, Name, 5:7)
-
-census_data <- do.call(rbind, lapply(listFrames, function(data) {
-                          gather(data, estimate, value, 5:7)
-}))
-
-gather(census, namesNotWanted, censusVars, match(censusVars, names(census))
-census %>% mutate(cfips = paste0(StateFIPSCode, CountyFIPSCode))
+census <- select(census, -contains("90"))
+census <- mutate(census, fips = paste0(StateFIPSCode, CountyFIPSCode))
 ```
 
+
+# Join the datasets on 5-digit FIPS state/county codes using dplyr
+
+Merge datasets using dplyr. `inner_join()` keeps only records that can be matched on FIPS code.
+
+```{r}
+prisonpov <- dplyr::inner_join(padmissions, census, by = "fips")
+```
+
+# Descriptives
+
+Using joined dataset make histograms of incarceration rates, poverty % variables, and income variable.
+
+Example for incarceration rates:
+
+```{r}
+library(ggplot2)
+ggplot(prisonpov, aes(admitsPer10k2014)) + 
+  geom_histogram() + xlab("Prison Admissions per 10K (2014)")
+```
+
+# Univariate log-linear Poisson model
+
+Fit a univariate log-linear model with #/10K incarcerated as y and poverty% as x
+
+```{r}
+fit1 <- glm(admitsPer10k2014 ~ PovertyPercentAllAges, data=prisonpov, family=poisson("log"))
+```
+
+# Multivariate log-linear Poisson model
+
+Fit a multivariate model, do residuals analysis
 
