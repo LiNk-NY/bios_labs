@@ -1,0 +1,209 @@
+---
+title: "R Introduction"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Basics
+
+R is an object oriented programming language. It works in terms of 'objects'
+which are variables that can represent nearly anything. 
+
+# R Markdown
+
+This is an R Markdown document. If you are reading this from the Word document
+output, you are not looking at the source code. Open the `Rmd` file. 
+
+In order to create the Word document, you can open the `Rmd` file in `RStudio`.
+This allows you to easily create the Word document by clicking on the `Knit`
+button at the top of the window. If you click the tiny triangle, you will
+see all the options available. Word should be the default based on the header
+of this document (i.e., `output: word_document`). Provided that your code
+is running, you will be able to 'knit' R code and free text to a Word document
+for submission. 
+
+# Data Types
+
+## Numeric
+
+We use the `c` function to *combine* values into ONE object!
+
+```{r}
+c(1, 2, 3)
+## inspect the type
+class(c(1:3))
+```
+
+Note. The colon `:` can be used as a shortcut to indicate a sequence of numbers.
+
+## Character
+
+Here we create a character vector of the words for three colors.
+
+```{r}
+c("red", "blue", "green")
+```
+
+## Logical
+
+A logical vector consists of either `TRUE` or `FALSE` values. These are special
+keywords that R can understand to indicate logical conditions. We put these
+values into a vector:
+
+```{r}
+c(TRUE, FALSE, TRUE)
+```
+
+## Assignment
+
+In order to create an object and manipulate it, we need to hold it in space
+and time. We use the `<-` arrow to set the variable "myvar" on the left hand
+side.
+
+```{r}
+myvar <- c(1, 2, 3)
+```
+
+In the above code, the object "myvar" is set to a vector of numbers (1, 2, and
+3). We _always_ use the 'arrow' to __assign__ a variable from a set of values.
+
+```{r}
+mysecond <- c("blue", "green", "red")
+```
+
+To 'see' a variable, simply run the variable in the console or in a code chunk.
+
+```{r}
+myvar
+```
+
+__Note.__ Code chunks are *delimited* by a triple backtick and 'r' in brackets:
+(*Ignore* the backslashes in this example as they are for printing purposes.
+
+
+```
+\`\`\`{r}
+```
+
+and always end in a single line of triple backticks:
+
+```
+\`\`\`
+```
+
+To get the path of a file from within R, use the `file.choose` function.
+
+```{r,eval = FALSE}
+mycsv <- file.choose()
+```
+
+In this example 'mycsv' is assigned to the result of the `file.choose`
+operation. `mycsv` will contain the path to the file that you chose
+through the 'File Explorer' or 'Finder' (if on a Mac).
+
+*Note* that you may also get the path from your operating system's 'File
+Explorer' by SHIFT and RIGHT CLICK-ing on the file. This is different if
+you're the 'Finder' on a Mac, see the file properties. 
+
+Here we paste the full ('absolute') path of the file: 
+
+```{r,eval=FALSE}
+mycsv <- "c:/Users/Documents/mycsvfile.csv"
+```
+
+**Note.** Windows users will have paths that are `\` (backslashes) instead of
+`/` forward slashes that R requires. You will have to manually change each
+one if you don't use the `choose.file()` function.
+
+**Important.** We used `eval=FALSE` in the previous chunk options because we do
+not want to run the code for the hypothetical file presented here (reason 
+being that it won't work; there is no `mycsvfile.csv`).
+
+## Loading data
+
+In this example, we recommend that both the data and the `Rmd` source file
+reside in the same location. Therefore we can use the 'relative' file path
+to the file which would simply be the name of the file "birthwt.csv".
+
+Here we use the function `read.csv` to import the data with the __correct__
+file path:
+
+```{r, eval=FALSE}
+read.csv("/home/rstudio/data/birthwt.csv")
+```
+
+We assign this to a variable / object in order to work with it. 
+
+```{r}
+bwt <- read.csv("~/data/birthwt.csv")
+```
+
+We now have a `data.frame` object at our disposal. To see the class use the
+class function:
+
+```{r}
+class(bwt)
+```
+
+### Renaming the columns in data
+
+Here we use the `names` function on the `bwt` dataset and use assignment
+to give the new column names.
+
+```{r}
+names(bwt) <- c("MID", "Order", "Wt", "Age", "CID") 
+```
+
+A `data.frame` object is a standard representation for data in R. It is quite
+versatile in that it allows variables of multiple types (i.e., character,
+numeric, logical)
+
+## Preview the data
+
+To see a small slice of the data we use the `head` function on the variable
+we just created:
+
+```{r}
+head(bwt)
+```
+
+## Take a subset of the data
+
+We can either use the subset
+```{r}
+bwt.first <- subset(bwt, Order == 1)
+```
+
+Equivalently, we can use the square brackets to take first borns in the
+data:
+
+```{r}
+bwt.first <- bwt[bwt$Order == 1, ]
+```
+
+## Descriptive statistics for numerical variables
+
+```{r}
+summary(bwt)
+```
+
+## Scatterplot of death rate by age
+
+```{r}
+plot(bwt.first$Wt, bwt.first$Age)
+```
+
+**Important.** We always use the `$` dollar sign symbol to obtain a single column
+from a `data.frame` (`bwt`).
+
+## Regression of death rate on age
+
+```{r}
+fit <- lm(Wt ~ Age, data = bwt.first)
+summary(fit)
+```
