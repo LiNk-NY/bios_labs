@@ -27,6 +27,13 @@ of this document (i.e., `output: word_document`). Provided that your code
 is running, you will be able to 'knit' R code and free text to a Word document
 for submission. 
 
+# Installing packages
+
+```{r,eval=FALSE}
+install.packages("knitr")
+```
+
+
 # Data Types
 
 ## Numeric
@@ -36,7 +43,7 @@ We use the `c` function to *combine* values into ONE object!
 ```{r}
 c(1, 2, 3)
 ## inspect the type
-class(c(1:3))
+class( c(1, 2, 3) )
 ```
 
 Note. The colon `:` can be used as a shortcut to indicate a sequence of numbers.
@@ -134,13 +141,22 @@ Here we use the function `read.csv` to import the data with the __correct__
 file path:
 
 ```{r, eval=FALSE}
-read.csv("/home/rstudio/data/birthwt.csv")
+## absolute path
+read.csv("/cloud/project/data/birthwt.csv")
+## relative path
+read.csv("birthwt.csv")
+## interactive option for an absolute path
+file.choose()
 ```
 
 We assign this to a variable / object in order to work with it. 
 
 ```{r}
-bwt <- read.csv("~/data/birthwt.csv")
+bwt <- read.csv(file = "/cloud/project/data/birthwt.csv")
+head(bwt)
+tail(bwt)
+dim(bwt)
+class(bwt)
 ```
 
 We now have a `data.frame` object at our disposal. To see the class use the
@@ -176,15 +192,21 @@ head(bwt)
 
 We can either use the subset
 ```{r}
-bwt.first <- subset(bwt, Order == 1)
+bwt.first <- subset(x = bwt, subset = Order == 1)
 ```
 
 Equivalently, we can use the square brackets to take first borns in the
 data:
 
 ```{r}
-bwt.first <- bwt[bwt$Order == 1, ]
+bwt.first <- bwt[ bwt$Order == 1 , ]
 ```
+
+```{r}
+library(dplyr)
+filter(bwt, Order == 1)
+```
+
 
 ## Descriptive statistics for numerical variables
 

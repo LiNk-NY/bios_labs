@@ -1,0 +1,113 @@
+---
+title: "Lab 1"
+author: "Session 1"
+date: "2/4/2021"
+output:
+  slidy_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Today's class
+
+* R and the RStudio interface
+* Basic features of the R language
+* Getting started
+* Tips
+* Getting help and troubleshooting
+* External resources
+
+# What is R?
+
+* R is a programming language and environment for statistical computing and
+data visualization
+* "Base R" refers to the standalone suite of pre-packaged functions that allow
+R to function as a language
+* Extensions of the R language are what are called "packages"
+* A **package** is a container of functions that give R additional flexibility
+
+# What is RStudio?
+
+* IDE Interactive Development Environment
+* Four pane layout
+* Editor + Console + Environment + Files
+* Let's have a look at it!
+
+# R script vs R Markdown
+
+* R script is general language processable by R ("code")
+* R scripts have a `.R` file extension
+* RMarkdown is a framework for combining code and prose
+* RMarkdown documents have a `.Rmd` file extension
+
+# Using R
+
+![HowToUseR](https://github.com/CUNYSPHCode/IntroR/raw/master/Lectures/catprogram.jpeg)
+
+# How do I get started?
+
+* First download the latest R version from [r-project.org](https://cloud.r-project.org/)
+* Install R with all the default settings
+* Download RStudio from [RStudio.com](https://www.rstudio.com/products/rstudio/download/)
+* RStudio allow you to select the R version installed in your system.
+
+# Recommendations for RStudio setup
+
+* Tools > Global Options
+* _Don't_ restore .RData into workspace
+* _Never_ save workspace to .RData on exit
+
+# Features of the R Language
+
+* case sensitive!!
+* Spaces are ignored (except in names)
+* works with functions
+* vectorized operations
+* objects
+* help pages
+* `?reserved`
+
+# Recognizing a function
+
+* a name followed by parentheses `help()`
+* arguments (e.g., `functionname(argument1 = "default")`)
+* input / output
+
+# Useful tips for learning R
+
+Pseudo code                                   |   Example code
+--------------------------------------------  |   -------------------
+install.packages(packagename)                 | install.packages("dplyr")
+?functionname                                 | ?select
+?package::functionname                        | ?dplyr::select
+? 'Reserved keyword or symbol' (or backticks) | ? '%>%'
+??searchforpossiblyexistingfunctionandortopic | ??simulate
+help(package = "loadedpackage")               | help("dplyr")
+browseVignettes("packagename")                | browseVignettes("dplyr")
+
+# General tips for learning R
+
+![twitteradvice](https://github.com/CUNYSPHCode/IntroR/raw/master/Lectures/radvicetwitter.png)
+
+# General tips for learning R
+
+* Learning R will be frustrating
+* You're learning a new language
+* Practice, practice, practice
+* Don't be afraid to make mistakes
+
+# R Housekeeping tips
+
+* Maintain a clean R "global" environment
+* Save your scripts rather than outputs
+* Use object names that are descriptive
+* Improve readability with clean formatting
+
+# Getting help and troubleshooting
+
+* Critically important
+* "Debugging" your script involves:
+  * Step by step, line by line process
+  * Know your inputs and outputs
