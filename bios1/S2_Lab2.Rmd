@@ -1,9 +1,152 @@
 ---
-title: "BIOS Lab 2"
+title: "Lab 2"
+author: "BIOS 620"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load example data
+
+## mtcars
+
+Load the internal dataset provided with R:
+
+```{r}
+data(mtcars)
+```
+
+## Data inspection
+
+```{r}
+?mtcars
+dim(mtcars)
+head(mtcars)
+```
+
+# Data Export
+
+You can use a number of functions depending on the 
+file type that you want to use. For example,
+to create a CSV file, use `write.csv` with a `data.frame`.
+
+```{r}
+write.csv(mtcars, file = "data/mtcars.csv", row.names = TRUE)
+```
+
+# Example Re-import 
+
+We can then read in the data using read.csv. Remember this
+is all happening within our working directory. See `getwd()`.
+
+```{r}
+dat <- read.csv("data/mtcars.csv", header = TRUE, row.names = 1)
+head(dat)
+```
+
+# Visual Exploration
+
+## Histogram
+
+Distribution of a single continuous variable:
+
+```{r}
+hist(mtcars$mpg, main = "Histogram of MPG")
+```
+
+```{r}
+boxplot(mtcars$mpg)
+mean(mtcars$mpg)
+```
+
+
+## Boxplots
+
+Grouped distributions of displacement by cylinder type:
+
+```{r}
+boxplot(disp ~ cyl, data = mtcars)
+```
+
+## Bi-variable comparison
+
+### Scatterplot
+
+```{r}
+plot(mtcars$mpg, mtcars$wt)
+```
+
+
+## Multi-variable comparisons
+
+```{r}
+pairs(mtcars, main = "mtcars data", gap = .5)
+```
+
+```{r}
+library(psych)
+pairs.panels(mtcars)
+```
+
+# Simple Linear Regression
+
+## Formula notation
+
+A way to tell R how variables are related. Usually as
+'Y = X1 + X2' except that the '=' is replaced with the
+tilde ' ~ '. 
+
+```{r}
+mpg ~ wt
+mpg ~ 1 + wt
+```
+
+Here `mpg` is the Y variable and `wt` is the X. 
+
+## Model fit
+
+Now we fit the linear model and see the fit object called
+`myfit`.
+
+```{r}
+myfit <- lm(mpg ~ 1 + wt, data = mtcars)
+myfit
+myfit <- lm(mpg ~ wt, data = mtcars)
+myfit
+summary(myfit)
+```
+
+```{r}
+plot(mtcars$wt, mtcars$mpg)
+abline(
+  # model 1
+  lm(mpg ~ 1 + wt, data = mtcars),
+  col = "blue", lwd = 2
+)
+abline(
+  # centering
+  lm(mpg ~ 1 + I(wt - mean(wt)), data = mtcars),
+  col = "red", lwd = 2
+)
+```
+
+
+## Fitted values
+
+```{r}
+yhat <- predict(myfit) 
+# actual vs fitted values
+plot(mtcars$mpg, yhat)
+abline(a=0,b=1)
+```
+
+# Reading a SAS file
+
+```{r}
+library(haven)
+french <- read_sas("data/French_males.sas7bdat")
+head(french)
 ```
 
