@@ -1,0 +1,147 @@
+---
+title: "Multivariate Regression for Confounding Models"
+author: "BIOS 620 / PUBH 614"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Simulating Data
+
+## Setting a seed
+
+When running a simulation, it is important to set a random seed before
+invoking a command that requires random number generation such as
+`rnorm`. This keeps our results reproducible. A computer cannot generate
+_truly_ random events.
+
+```{r}
+set.seed(1)
+AGE <- rnorm(100, mean=35, sd=5)
+SEX <- rbinom(100, 1, 0.5)
+SL <-  rnorm(100, mean=50 + 0.01*AGE - 0.01*SEX, sd=2)
+SBP <- rnorm(100, mean=109.47 + 2.00*SL + 0.5*AGE + 0.5*SEX, sd=5)
+```
+
+*Note*. Both AGE and SEX are confounders in this simulation and `SL` is
+sugar level.
+
+# Univariate analysis: between outcome and study variable
+
+We fit a simple model. 
+
+```{r}
+fit1 <- lm(SBP ~ 1 + SL)
+summary(fit1)
+```
+
+## Design matrix `model.matrix`
+
+```{r}
+head(model.matrix(SBP ~ 1 + SL))
+head(model.matrix(SBP ~ SL))
+```
+
+# Multivariate analysis: adjusting confounder AGE 
+
+*Note*. Here we are treating SEX as an "unobserved confunder" in this analysis by
+intentionally omitting it.
+
+```{r}
+fit2 <- lm(SBP ~ 1 + SL + AGE)
+summary(fit2)
+```
+
+# Using the stargazer package for nice summary tables 
+
+```{r}
+library(stargazer)
+stargazer(fit1, fit2, title="Regression Results",
+    type="text", style="default", header=FALSE)
+```
+
+# Introduction to `for` loops
+
+A simple example. Iterating over `i` values. The `length` of `i` indicates
+the number of iterations. 
+
+```{r}
+i <- 1:3
+length(i)
+```
+
+Note. `i` in the `.GlobalEnv` is different from the i *INSIDE* the `for` loop.
+
+```{r}
+for (i in 1:3) {
+    print(i)
+}
+```
+
+## Allocate and fill method
+
+The recommended method for writing a `for` loop is to use the "allocate and
+fill" method. It provides an efficient use of memory rather than the
+"copy and append" method. First we create an empty vector or list.
+
+```{r}
+fill_vector <- vector(mode = "numeric", length = 10)
+fill_vector
+```
+
+We then use the `for` loop to fill the values of that vector at each
+iteration.
+
+```{r}
+for (i in 1:10) {
+    fill_vector[i] <- i + 1
+}
+```
+
+## Replicate
+
+A generalized function for repeating the same expression with random
+number generation. An 'expression' is any R language object. It is one of the
+'parts of speech' in the R language. To encapsulate an 'expression' (the
+'operations that we want to repeat over a series of random numbers), we use the
+'open and close `{ }` curly braces.
+
+```{r}
+set.seed(1)
+replicate(6, { rnorm(10) })
+```
+
+# Lab exercise
+
+1. set different seeds to see how the results changes, especially
+    the coefficient for SL (sugar level)
+    
+```{r}
+
+```
+
+2. Choose different magnitude of confounding from the unobserved 
+   confounder SEX, re-fit the model and observe the change of the
+   impact of SL to SBP (the main study association)
+   
+```{r}
+
+```
+
+3. Try other changes you might consider, e.g., magnitude of error (for
+   SL and/or SBP)
+   
+```{r}
+
+```
+   
+Finally, write a `for` loop to gather results from 1000 seeds and
+quantify the bias (PRB) of estimating coefficient of SL due to
+omiting confounders.
+
+```{r}
+
+```
+
