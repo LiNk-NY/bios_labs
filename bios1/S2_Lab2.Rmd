@@ -125,6 +125,8 @@ abline(
   lm(mpg ~ 1 + wt, data = mtcars),
   col = "blue", lwd = 2
 )
+## centering the weight variable
+plot(mtcars$wt - mean(mtcars$wt), mtcars$mpg)
 abline(
   # centering
   lm(mpg ~ 1 + I(wt - mean(wt)), data = mtcars),

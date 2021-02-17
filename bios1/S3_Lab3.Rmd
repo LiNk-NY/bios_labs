@@ -46,7 +46,7 @@ head(model.matrix(SBP ~ SL))
 
 # Multivariate analysis: adjusting confounder AGE 
 
-*Note*. Here we are treating SEX as an "unobserved confunder" in this analysis by
+*Note*. Here we are treating SEX as an "unobserved confounder" in this analysis by
 intentionally omitting it.
 
 ```{r}
