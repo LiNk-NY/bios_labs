@@ -141,27 +141,24 @@ stargazer(fit1, fit2, fit3, title="Regression Results",
    impact of SL to SBP (the main study association)
    
 ```{r}
-###------ Chang:  seed, beta1 and sdv
 rm(list=ls())
 beta2 <- 0.8
-sdv = 10
+sdv = 5
 myseed = 10
 set.seed( myseed)
 
 AGE <- rnorm(100, mean=35, sd=5)
 SEX <- rbinom(100, 1, 0.5)
 SL <-  rnorm(100, mean=50 + 0.01*AGE - 0.01*SEX, sd=2)
-SBP <- rnorm(100, mean=109.47 + 2.00 *SL + 0.5*AGE + beta2*SEX, sd= sdv)
+SBP <- rnorm(100, mean=109.47 + 2.00 *SL + beta2*AGE + 0.5*SEX, sd= sdv)
 
 fit1 <- lm(SBP~1 + SL + AGE)
-summary(fit1)
 
 #### -- change beta2
 beta2 = 0.2
-SBP <- rnorm(100, mean=109.47 + 2.00 *SL + 0.5*AGE + beta2*SEX, sd= sdv)
+SBP <- rnorm(100, mean=109.47 + 2.00 *SL + beta2*AGE + 0.5*SEX, sd= sdv)
 
 fit2 <- lm(SBP~1 + SL + AGE)
-summary(fit2)
 
 
 stargazer(fit1, fit2, title="Regression Results",
