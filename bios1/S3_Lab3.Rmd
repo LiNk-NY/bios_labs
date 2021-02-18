@@ -212,6 +212,6 @@ beta1.c <- c( beta1.c, coefficients(myfit)["SL"] )
 beta1.c
 }
 
-mean((beta1.c - beta1.true) / beta1.true) * 100
+print( mean((beta1.c - beta1.true) / beta1.true) * 100 )
 
 ```
