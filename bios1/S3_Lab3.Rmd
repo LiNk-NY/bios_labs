@@ -21,7 +21,9 @@ _truly_ random events.
 set.seed(1)
 AGE <- rnorm(100, mean=35, sd=5)
 SEX <- rbinom(100, 1, 0.5)
+## SL is dependent on AGE and SEX
 SL <-  rnorm(100, mean=50 + 0.01*AGE - 0.01*SEX, sd=2)
+## True SL Coeff is 2.00
 SBP <- rnorm(100, mean=109.47 + 2.00*SL + 0.5*AGE + 0.5*SEX, sd=5)
 ```
 
@@ -187,8 +189,8 @@ summary(fit1)
 ```
    
 Finally, write a `for` loop to gather results from 1000 seeds and
-quantify the bias (PRB) of estimating coefficient of SL due to
-omiting confounders.
+quantify the percent bias (PRB) of estimating coefficient of SL due to
+omitting confounders.
 
 $PRB = \frac{1}{S} \sum_{s=1}^{1000} 100 * \frac{\beta_1^{(s)}-\beta_1^{tru}}{\beta_1^{tru}}$
 
