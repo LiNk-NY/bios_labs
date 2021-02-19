@@ -56,10 +56,20 @@ fit2 <- lm(SBP ~ 1 + SL + AGE)
 summary(fit2)
 ```
 
+## Extracting information from a fit object
+
+```{r}
+## coefficients
+coef(fit2)
+## conf. intervals
+confint(fit2)
+```
+
 # Using the stargazer package for nice summary tables 
 
 ```{r}
 library(stargazer)
+# install.packages("stargazer")
 stargazer(fit1, fit2, title="Regression Results",
     type="text", style="default", header=FALSE)
 ```
@@ -100,6 +110,7 @@ iteration.
 for (i in 1:10) {
     fill_vector[i] <- i + 1
 }
+fill_vector
 ```
 
 ## Replicate
@@ -107,12 +118,16 @@ for (i in 1:10) {
 A generalized function for repeating the same expression with random
 number generation. An 'expression' is any R language object. It is one of the
 'parts of speech' in the R language. To encapsulate an 'expression' (the
-'operations that we want to repeat over a series of random numbers), we use the
-'open and close `{ }` curly braces.
+operations that we want to repeat over a series of random numbers), we use the
+open and close `{ }` curly braces.
 
 ```{r}
 set.seed(1)
-replicate(6, { rnorm(10) })
+result <- replicate(6, { rnorm(n = 10, mean = 0, sd = 1) })
+## inspect the class
+class(result)
+## see the object
+result
 ```
 
 # Lab exercise
