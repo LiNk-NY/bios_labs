@@ -10,12 +10,20 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Simulating Data
 
+In order to understand the influence of unobserved confounders, we will create
+a simulation study where we create random variables with _known_ population
+parameters.
+
 ## Setting a seed
 
-When running a simulation, it is important to set a random seed before
-invoking a command that requires random number generation such as
-`rnorm`. This keeps our results reproducible. A computer cannot generate
-_truly_ random events.
+Because we are using a computer based on zeros and ones, _true_ randomness is
+not possible. Therefore, we need a way to obtain "random" numbers with
+an algorithm that attempts to do that.
+
+We use the `set.seed` function to generate random numbers from an origin
+'seed'. The 'seed' is an input number for that algorithm. We re-use the
+'seed' to keep our simulation results shareable and reproducible. It affects
+how functions that generate random numbers behave (such as `rnorm`).
 
 ```{r}
 set.seed(1)
@@ -32,24 +40,33 @@ sugar level.
 
 # Univariate analysis: between outcome and study variable
 
-We fit a simple model. 
+We fit a simple linear model.
 
 ```{r}
 fit1 <- lm(SBP ~ 1 + SL)
 summary(fit1)
 ```
 
-## Design matrix `model.matrix`
+## Side note: Design matrix with `model.matrix`
+
+To verify the effect of the constant (1) in the R formula `SPB ~ 1 + SL`, we
+use the `model.matrix` function to obtain the design matrix that R uses
+to calculate regression estimates. By comparing the output of both
+`model.matrix operations below, we see that the constant has no effect in how
+the `model.matrix` is generated. It is included for illustrate the intercept
+(`A`) in the equation
+
+$ SBP = A + B_{1} * SL + B_{2} * AGE + E $
 
 ```{r}
 head(model.matrix(SBP ~ 1 + SL))
 head(model.matrix(SBP ~ SL))
 ```
 
-# Multivariate analysis: adjusting confounder AGE 
+# Multivariate analysis: adjusting confounder AGE
 
-*Note*. Here we are treating SEX as an "unobserved confounder" in this analysis by
-intentionally omitting it.
+*Note*. Here we are treating SEX as an "unobserved confounder" in this analysis
+by intentionally omitting it.
 
 ```{r}
 fit2 <- lm(SBP ~ 1 + SL + AGE)
@@ -58,6 +75,11 @@ summary(fit2)
 
 ## Extracting information from a fit object
 
+In instances where we need to compute on the output of a regression,
+there are several functions to help us obtain pieces of the results.
+For example, `coef` to obtain the coefficients and `confint` to obtain
+the 95% confidence intervals of the estimates.
+
 ```{r}
 ## coefficients
 coef(fit2)
@@ -65,7 +87,9 @@ coef(fit2)
 confint(fit2)
 ```
 
-# Using the stargazer package for nice summary tables 
+# Using the stargazer package for nice summary tables
+
+Use the `stargazer` package to obtain a nice output of your results.
 
 ```{r}
 library(stargazer)
@@ -76,15 +100,20 @@ stargazer(fit1, fit2, title="Regression Results",
 
 # Introduction to `for` loops
 
-A simple example. Iterating over `i` values. The `length` of `i` indicates
-the number of iterations. 
+We commonly use `i` as the iterating variable, within a `for` loop.
+As practice, create a vector from 1 to 3 and then ask what the `length`
+of that vector is with the `length` function.
 
 ```{r}
 i <- 1:3
 length(i)
 ```
 
-Note. `i` in the `.GlobalEnv` is different from the i *INSIDE* the `for` loop.
+Next, let's create a `for` loop where we tell R to print the `i` variable at
+each cycle.
+
+*Note*. Variable `i` in the `.GlobalEnv` (see it with `ls()`) and is different
+from the `i` *INSIDE* the `for` loop.
 
 ```{r}
 for (i in 1:3) {
@@ -134,16 +163,16 @@ result
 
 1. set different seeds to see how the results changes, especially
     the coefficient for SL (sugar level)
-    
+
 ```{r}
 
 
 ```
 
-2. Choose different magnitude of confounding from the unobserved 
+2. Choose different magnitude of confounding from the unobserved
    confounder SEX, re-fit the model and observe the change of the
    impact of SL to SBP (the main study association)
-   
+
 ```{r}
 
 
@@ -151,12 +180,12 @@ result
 
 3. Try other changes you might consider, e.g., magnitude of error (for
    SL and/or SBP)
-   
+
 ```{r}
 
 
 ```
-   
+
 Finally, write a `for` loop to gather results from 1000 seeds and
 quantify the percent bias (PRB) of estimating coefficient of SL due to
 omitting confounders.
