@@ -34,10 +34,10 @@ population in North Carolina.
 
 ## State the null and alternative hypotheses:
 
-Ho: p = .231
-Ha: p ≠ .231
+$H_0: p = 0.231$
+$H_a: p \neq 0.231$
 
-Would it be appropriate to conduct a “large sample” z test?
+Would it be appropriate to conduct a "large sample" z-test?
 
 What is the sample size?
 
@@ -111,3 +111,146 @@ $\sigma_{\bar{x}} = \sqrt{\frac{\sigma^2}{n}}$
 ```{r}
 sqrt(sd(ncbirth$smoke, na.rm = TRUE)^2 / 798)
 ```
+
+# One-sample test for means
+
+Assume the average birth weight for a full-term newborn in the United States is
+120 ounces. Conduct a two sided hypothesis test ($\alpha$ = 0.05) to determine
+if the average birth weight of North Carolina newborns is significantly
+different than that of the United States.
+
+## State you null and alternative hypothesis: 
+
+$H_0: \mu = 120$ ounces
+$H_a: \mu \neq 120$ ounces
+
+Plot the distribution of birth weights in the sample:
+
+```{r}
+hist(ncbirth$tounces, breaks = 30, main = "Weight of the child (ounces)")
+```
+
+Would it be appropriate to conduct a t test to test the hypotheses above? We
+should be worried about the skew in the data. We will come back to this issue in
+a moment. For the purpose of illustration we will for now consider all newborns,
+i.e. full-term infants and premature infants, variable `tounces`).
+
+
+First some descriptives:
+
+```{r}
+summary(ncbirth$tounces)
+sd(ncbirth$tounces)
+## calculate std. error manually
+(stderr <- with(ncbirth, sd(tounces)/sqrt(length(tounces))))
+```
+
+We run the one-sample test with the `mu` argument set to our population
+estimate.
+
+```{r}
+(onet <- t.test(x = ncbirth$tounces, mu = 120))
+```
+
+We can check the t-value manually as well:
+
+```{r}
+( mean(ncbirth$tounces) - 120 )/ stderr
+```
+
+Conclusion: Since p-value associated with this test is p<.001 (which is smaller
+than $\alpha$ = 0.05), we reject the null hypothesis $H_0: \mu = 120$ ounces in
+favor of the alternative hypothesis $H_a: \mu \neq 120$ ounces. We conclude that
+the mean birth weight for newborns in North Carolina is not 120 ounces; in fact,
+we found that it is most likely less -the 95% CI for the mean birth weight for
+newborns in North Carolina is
+(`r paste(round(onet$conf.int, 2), collapse = ", ")`) [see below] - given
+repeated samplings, the true mean birth weight for newborns in North Carolina
+will fall between `r paste(round(onet$conf.int, 2), collapse = ", ")` ounces 95%
+of the time. Note the this CI does not include the hypothesized value of 120 oz,
+indicating that the 120oz is NOT a plausible value for the mean birth weight for
+newborns in North Carolina (hypothesis testing results and CI results agree).
+
+```{r}
+onet$conf.int
+```
+
+Now we will conduct the analysis on a subsample: the full-term newborns only. We
+will select newborns using variable "premie" [1=infant was premature, 0= infant
+was not premature].
+
+```{r}
+table(ncbirth$premie)
+prop.table( table(ncbirth$premie) )
+```
+
+88.4% (n=707) of infants were full-term (not premature)
+
+Now we take a the subset:
+
+```{r}
+fullterm <- ncbirth[ncbirth$premie == 0, ]
+dim(fullterm)
+```
+
+State you null and alternative hypothesis: 
+
+$H_0: \mu = 120$ ounces
+$H_a: \mu \neq 120$ ounces
+
+Sample size: n=707.
+
+Plot the distribution of birth weights among the full-term infants:
+
+```{r}
+hist(fullterm$tounces, breaks = 30, main = "Weight of child (ounces)")
+```
+
+Descriptive stats:
+
+```{r}
+mean(fullterm$tounces)
+sd(fullterm$tounces)
+## calculate std. error manually
+(stderr <- with(fullterm, sd(tounces)/sqrt(length(tounces))))
+```
+
+Now we run the one sample t-test again:
+
+```{r}
+(onet2 <- t.test(x = fullterm$tounces, mu = 120))
+```
+
+We can check the t-value manually as well:
+
+```{r}
+( mean(fullterm$tounces) - 120 )/ stderr
+```
+
+Conclusion: Since p-value associated with this test is p=.780 (which is greater
+than $\alpha$ = 0.05), we fail to reject the null hypothesis $H_0: \mu = 120$
+ounces. We did not find evidence that the mean birth weight for full-term
+newborns in North Carolina is different from the mean birth weight for full-term
+newborns in the U.S.
+
+```{r}
+onet2$conf.int
+```
+
+The 95% CI for the mean birth weight for full-term newborns in North Carolina is
+(`r paste(round(onet2$conf.int, 2), collapse = ", ")`). Note the this CI does
+include the hypothesized value of 120 oz, indicating that the 120 oz is a
+plausible value for the mean birth weight for full-term newborns in North
+Carolina (again hypothesis testing results and CI results agree).
+
+# Questions:
+
+Test the following hypotheses at $\αlpha$ = 0.05:
+
+* The percentage of premature infants in North Carolina in 2001 was significantly lower than the percentage premature babies in the U.S. in 2001, which is reported to be 11.9% (http://www.cdc.gov/nchs/data/nvsr/nvsr51/nvsr51_02.pdf). [variable `premie`]
+Make sure to sort "premie" variable in descending order.
+* The mean mother’s age in North Carolina in 2001 was significantly different
+than the mean mother’s age in the U.S. in 2000, which was reported as 24.9 years
+old. (http://www.cdc.gov/nchs/data/nvsr/nvsr51/nvsr51_01.pdf). [variable mage] 
+
+First, write your hypotheses and then use R to test them. 
