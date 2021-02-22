@@ -1,0 +1,113 @@
+---
+title: "One-sample tests"
+author: "PH 750"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Open NCBIRTH800mod dataset
+
+Recall that the North Carolina State Center for Health Statistics makes
+publicly available birth and infant death data for all children born in the
+state of North Carolina. This comprehensive dataset for the births in 2001
+contains 120,300 records. The data in ‘NCBIRTH800.sav’ represents a random
+sample of 800 of those births and selected variables.
+
+```{r}
+library(haven)
+ncbirth <- read_spss("~/Downloads/NCBIRTH800mod.sav")
+```
+
+In 2001, smoking prevalence among women in North Carolina was 23.1% (Tobacco
+Prevention and Control Branch & State Center for Health Statistics, 2002,
+p.2)^[Tobacco Prevention and Control Branch & State Center for Health
+Statistics. (2002). BRFSS News Brief - North Carolina. Who’s Still Smoking in
+NC? Retrieved from
+http://www.tobaccopreventionandcontrol.ncdhhs.gov/data/SurveillanceDataFiles/ArchiveFactSheets/adult/AdultShortReports/brfssgaso02.pdf].
+
+Conduct a two sided hypothesis test ($alpha_$ = .05) to determine if smoking
+prevalence among pregnant women is different than that of the general female
+population in North Carolina.
+
+## State the null and alternative hypotheses:
+
+Ho: p = .231
+Ha: p ≠ .231
+
+Would it be appropriate to conduct a “large sample” z test?
+
+What is the sample size?
+
+This shows you the dimensions of the data. The first number corresponds to
+the rows and the second to the
+columns. There are 800 observations
+and 15 variables in the data.
+
+```{r}
+dim(ncbirth)
+```
+
+Create the frequency table and proportions table with `table` and `prop.table`
+respectively.
+
+```{r}
+table(ncbirth$smoke, useNA = "always")
+prop.table( table(ncbirth$smokef) )
+```
+
+Note that there are two values that are missing `NA` in our data.
+
+Since n*p (`798 * .231`) and n*(1-p) (`798 * .769`) are both greater than 5, it
+is ok to use the large-sample z-test to test the hypotheses of interest.
+
+Based on the documentation of `?binom.test`, we want to have a tally of
+successes and failures in that order. To get a tally we use the `table`
+function and reverse the order with `rev` to arrange successes first.
+
+```{r}
+smokes <- rev(table(ncbirth$smoke))
+zres <- prop.test(x = smokes, p = 0.231, alternative = "two.sided", correct = FALSE)
+zres
+```
+
+Now we confirm that our probability of successes `p` matches the mean below:
+
+```{r}
+## mean should match prob. of success
+mean(ncbirth$smoke, na.rm = TRUE)
+```
+
+To get the Z-test statistic, you take the square root of the `X-squared`
+value in the output:
+
+```{r}
+sqrt(zres$statistic)
+```
+
+We know that our sample proportion, `0.142`, is less than the population
+estimate `0.231` (smoking prevalence among women in NC) then we can conclude
+that the Z-test statistic is *negative*, i.e., `r -sqrt(zres$statistic)`.
+
+Remember to set the value of the `alternative` argument in the `prop.test`
+function based on whether you are conducting a one-sided or two-sided test.
+
+
+## Conclusion
+
+Conclusion: Since p-value associated with this test is _p_ < .001 (which is
+smaller than α = .05), we reject the null hypothesis `Ho: p = .231` in favor of
+the alternative hypothesis `Ha: p ≠ .231`. We conclude that the proportion of
+women in North Carolina who smoke while pregnant is not `.231`; in fact, we
+found that it is significantly less (95% CI: .12, .17) (for CI see
+`zres$conf.int`).
+
+To calculate the standard error, we use the formula:
+
+$sigma_{\bar{x}} = \sqrt{\frac{sigma^2}{n}}$
+
+```{r}
+sqrt(sd(ncbirth$smoke, na.rm = TRUE)^2 / 798)
+```
