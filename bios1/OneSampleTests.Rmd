@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 Recall that the North Carolina State Center for Health Statistics makes
 publicly available birth and infant death data for all children born in the
 state of North Carolina. This comprehensive dataset for the births in 2001
-contains 120,300 records. The data in ‘NCBIRTH800.sav’ represents a random
+contains 120,300 records. The data in `NCBIRTH800.sav` represents a random
 sample of 800 of those births and selected variables.
 
 ```{r}
@@ -28,7 +28,7 @@ Statistics. (2002). BRFSS News Brief - North Carolina. Who’s Still Smoking in
 NC? Retrieved from
 http://www.tobaccopreventionandcontrol.ncdhhs.gov/data/SurveillanceDataFiles/ArchiveFactSheets/adult/AdultShortReports/brfssgaso02.pdf].
 
-Conduct a two sided hypothesis test ($alpha_$ = .05) to determine if smoking
+Conduct a two sided hypothesis test ($\alpha$ = .05) to determine if smoking
 prevalence among pregnant women is different than that of the general female
 population in North Carolina.
 
@@ -98,15 +98,15 @@ function based on whether you are conducting a one-sided or two-sided test.
 ## Conclusion
 
 Conclusion: Since p-value associated with this test is _p_ < .001 (which is
-smaller than α = .05), we reject the null hypothesis `Ho: p = .231` in favor of
-the alternative hypothesis `Ha: p ≠ .231`. We conclude that the proportion of
-women in North Carolina who smoke while pregnant is not `.231`; in fact, we
-found that it is significantly less (95% CI: .12, .17) (for CI see
+smaller than $\alpha$ = 0.05), we reject the null hypothesis `Ho: p = .231` in
+favor of the alternative hypothesis `Ha: p ≠ .231`. We conclude that the
+proportion of women in North Carolina who smoke while pregnant is not `.231`; in
+fact, we found that it is significantly less (95% CI: .12, .17) (for CI see
 `zres$conf.int`).
 
 To calculate the standard error, we use the formula:
 
-$sigma_{\bar{x}} = \sqrt{\frac{sigma^2}{n}}$
+$\sigma_{\bar{x}} = \sqrt{\frac{\sigma^2}{n}}$
 
 ```{r}
 sqrt(sd(ncbirth$smoke, na.rm = TRUE)^2 / 798)
