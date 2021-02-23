@@ -1,0 +1,328 @@
+---
+title: "TwoSampleTests"
+author: "PUBH 614"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Open NCBIRTH800mod dataset
+
+Recall that the North Carolina State Center for Health Statistics makes
+publicly available birth and infant death data for all children born in the
+state of North Carolina. This comprehensive dataset for the births in 2001
+contains 120,300 records. The data in `NCBIRTH800.sav` represents a random
+sample of 800 of those births and selected variables.
+
+```{r}
+library(haven)
+ncbirth <- read_spss("~/Downloads/NCBIRTH800mod.sav")
+# ncbirth <- haven::read_spss("~/data/NCBIRTH800mod.sav")
+```
+
+## Labels setup
+
+The data from SPSS comes with labels. Let's use it to create something
+that R can recognize.
+
+```{r}
+smoke_levels <- attributes(ncbirth$smoke)$labels
+ncbirth$smoke <- factor(ncbirth$smoke, levels = smoke_levels,
+    labels = names(smoke_levels))
+```
+
+Now we get a nicer output!
+
+```{r}
+table(ncbirth$smoke)
+```
+
+We'll do the same for low birthweight (`low` variable):
+
+```{r}
+low_levels <- attributes(ncbirth$low)$labels
+ncbirth$low <- factor(ncbirth$low, levels = low_levels,
+    labels = names(low_levels))
+table(ncbirth$low)
+```
+
+# Two sample test for proportions
+
+Are mothers who smoke during pregnancy more likely to have low birth weight
+(<2500 grams) infants compared to mothers who do not smoke during pregnancy?
+
+## State you null and alternative hypothesis: 
+      
+$H_0:   p1 – p2 = 0$ or $(p1 = p2)$
+$H_a:  p1 – p2 \neq 0$ or $(p1 \neq p2)$
+
+Would it be appropriate to conduct a "large sample" z test? 
+
+# Test this hypothesis using R
+
+First we create a table object using the `table` function with our exposure
+and outcome of interest:
+
+```{r}
+(smlow <- table(ncbirth$smoke, ncbirth$low))
+```
+
+We then use `prop.table` with the `margin = 1` argument to get row percentages:
+
+```{r}
+prop.table( smlow , margin = 1)
+```
+
+What is the sample size? 
+
+There were n=798 valid observations (2 observations were missing).
+
+## Sample statistics
+
+$n_1$ = 114 – # of mothers who smoked during pregnancy 
+$n_2$ = 684 – # of mothers who did not smoked during pregnancy 
+
+$\hat{p_1}$ = .13   [15/114 = .13]  [proportion of low birthweight babies for
+smokers]
+$\hat{p_2}$ = .08   [55/684 = .08]  [proportion of low birthweight babies for
+non-smokers]
+
+$\hat{p_1} - \hat{p_2}$ = .13- .08 = .05  [Point estimate of the difference
+(p1-p2), also called the risk difference]
+
+Since ($n_1p_1$ ≥ 5 & $n_1(1-p_1)$ ≥ 5) -> 114*.13=14.82≥ 5 & 114*.87=99.18≥ 5
+and ($n_2p_2$ ≥ 5 & $n_2(1-p_2)$ ≥ 5) -> 684*.08=54.72 ≥ 5 & 684*.92=629.28≥ 5;
+it is ok to use the large-sample z-test to test the hypotheses of interest.
+
+Finally, we run a chi-square test of independence:
+
+_Note_. We need to set `correct = FALSE` to avoid using Yates' Continuity
+Correction.
+
+```{r}
+(tabres <- chisq.test(smlow, correct = FALSE))
+```
+
+R does not provide the value of the z-test directly – it can be obtained by
+taking the square root of the Pearson Chi-square value: $\sqrt{3.197}$ = 1.79.
+
+```{r}
+sqrt(tabres$statistic)
+```
+
+Two-sided p-value is listed under "p-value". Recall that if the alternative
+hypothesis was 1-sided (p1 – p2 >0   or p1 – p2 < 0), we would divide the
+2-sided p-value by 2. Example here rounded to three decimal places:
+
+```{r}
+round(tabres$p.value / 2, 3)
+```
+
+Conclusion: Since p-value associated with this test is p=.074 (which is larger
+than $\alpha$ = .05), we fail to reject the null hypothesis Ho: p1 – p2 = 0 in
+favor of the alternative hypothesis $H_a: p1 – p2 \neq 0$. Notice that the
+p-value is very close to the cut-off value of $\alpha$ = .05 – such a finding is
+often reported as a trend towards a significant difference (in the expected
+direction). This study should be replicated to clarify the relationship between
+smoking during pregnancy and low birth weight.
+
+## 95% CI in R
+
+```{r}
+prop.test(smlow, correct = FALSE)$conf.int
+```
+
+_Note_. Zero is within our confidence interval, indicating that (p1-p2) may
+equal 0.
+
+### Calculation of the Z-test
+
+```{r}
+zres <- prop.test(smlow, correct = FALSE)
+## Z value
+sqrt(zres$statistic)
+
+## p-value
+zres$p.value
+```
+
+# Two sample test for means (independent samples)
+
+Do infants born to mothers who smoke during pregnancy have the same mean birth weight as those born to mothers who do not smoke?
+
+## State the null and alternative hypothesis: 
+
+$H_0:  \mu_1 - \mu_2 = 0$   ($\mu_1 = \mu_2$)
+$H_a: \mu_1 - \mu_2 \neq 0$   ($\mu_1 \neq \mu_2$)
+
+## Plot the distribution of birth weights by smoking status
+
+```{r}
+boxplot(tounces ~ smoke, data = ncbirth)
+```
+
+Multiple outliers show infants with very low birth weights, these are probably
+premature infants.  Note that the majority of these infants are born to mothers
+who did not smoke during pregnancy
+
+First, we will conduct the analysis on the full sample i.e. full-term infants
+and premature infants.
+
+### Means by group
+
+The groups are: 
+
+```{r}
+table(ncbirth$smoke)
+```
+
+There are many ways to get grouped summaries in R. `tapply` is one strategy:
+
+```{r}
+tapply(X = ncbirth$tounces, INDEX = ncbirth$smoke, FUN = mean)
+tapply(X = ncbirth$tounces, INDEX = ncbirth$smoke, FUN = sd)
+## manual calculation of the standard error
+tapply(X = ncbirth$tounces, INDEX = ncbirth$smoke, FUN = function(x) {
+    round(sd(x)/sqrt(length(x)), 3)
+})
+```
+
+## t-test Results
+
+```{r}
+(tres <- t.test(tounces ~ smoke, data = ncbirth))
+```
+
+```{r}
+tres$conf.int
+```
+
+### Sample statistics:
+$n_1$ = 684 – # of mothers who did not smoked during pregnancy 
+$n_2$ = 114 – # of mothers who did smoked during pregnancy 
+
+$\bar{x_1}$ = 117.56 [sample mean birthweight for babies born to non-smokers]
+$\bar{x_2}$ = 109.60   [sample mean birthweight for babies born to smokers]
+
+$\bar{x_1} - \bar{x_2}$ = 117.56 - 109.60 = 7.96  [Point estimate of the
+difference ($\mu_2 - \mu_2$)]
+
+t-test=3.83, df=164.90, p-value<.001 
+
+## Conclusion
+
+Since p-value associated with this test is p<.001 (which is smaller
+than $\alpha$ = 0.05), we reject the null hypothesis $H_0: \mu_1 - \mu_2 = 0$
+in favor of the alternative hypothesis $H_a: \mu_1 - \mu_2 \neq 0$.
+
+95% CI for $\mu_1 - \mu_2$ is (3.86, 12.06). With many resamplings of the
+population the  difference in mean weight between babies born to mothers who
+smoked during pregnancy and babies born to mothers who did not smoke during
+pregnancy will fall  between 3.86 and 12.06 ounces 95% of the time. Note that
+this CI does not include the hypothesized value of 0 for the mean difference,
+indicating that the 0 is NOT a plausible value for the mean difference of
+interest (hypothesis testing results and CI results agree).
+
+# Subsample analysis
+
+Now we will conduct the same analysis on a subsample: the full-term newborns
+only. We will select full-term newborns using variable "premie" [1=infant was
+premature, 0= infant was not premature].
+
+First is the setup:
+
+```{r}
+premie_levels <- attributes(ncbirth$premie)$labels
+ncbirth$premie <- factor(ncbirth$premie,
+    levels = premie_levels, labels = names(premie_levels))
+table(ncbirth$premie)
+```
+
+Note that now we have to match based on the label (i.e.,
+`"Infant was not premature"`):
+
+```{r}
+fullterm <- ncbirth[ncbirth$premie == "Infant was not premature", ]
+dim(fullterm)
+```
+
+## State the null and alternative hypothesis: 
+
+$H_0:  \mu_1 - \mu_2 = 0$   ($\mu_1 = \mu_2$)
+$H_a: \mu_1 - \mu_2 \neq 0$   ($\mu_1 \neq \mu_2$)
+
+## Plot the distribution of birth weights by smoking status among full-term infants
+
+```{r}
+boxplot(tounces ~ smoke, data = fullterm)
+```
+
+### Means by group
+
+The groups are: 
+
+```{r}
+table(fullterm$smoke)
+```
+
+There are many ways to get grouped summaries in R. `tapply` is one strategy:
+
+```{r}
+tapply(X = fullterm$tounces, INDEX = fullterm$smoke, FUN = mean)
+tapply(X = fullterm$tounces, INDEX = fullterm$smoke, FUN = sd)
+## manual calculation of the standard error
+tapply(X = fullterm$tounces, INDEX = fullterm$smoke, FUN = function(x) {
+    round(sd(x)/sqrt(length(x)), 3)
+})
+```
+
+## t-test Results
+
+```{r}
+(tres <- t.test(tounces ~ smoke, data = fullterm))
+```
+
+```{r}
+tres$conf.int
+```
+
+### Sample statistics:
+$n_1$ = 606 – # of mothers who did not smoke during pregnancy 
+$n_2$ = 99 – # of mothers who did smoke during pregnancy 
+
+$\bar{x_1}$ = 121.49 [sample mean birthweight for babies born to non-smokers]
+$\bar{x_2}$ = 112.69   [sample mean birthweight for babies born to smokers]
+
+$\bar{x_1} - \bar{x_2}$ = 121.49 – 112.69 = 8.80  [Point estimate of the
+difference ($\mu_2 - \mu_2$) among full-term babies]
+
+t-test = 4.79, df = 135.29, p-value < .001  
+
+## Conclusion
+
+Since p-value associated with this test is p < .001 (which is smaller than
+$\alpha$ = 0.05), we reject the null hypothesis $H_0: \mu_1 - \mu_2 = 0$
+in favor of the alternative hypothesis $H_a: \mu_1 - \mu_2 \neq 0$.
+
+95% CI for $\mu_1 - \mu_2$ is (5.17, 12.43). With many resamplings, the
+difference in mean weight between babies born to mothers who smoked during
+pregnancy and babies born to mothers who did not smoke during pregnancy wil fall
+between 3.86 and 12.06 ounces 95% of the time. We arrived at the same
+conclusions - on *average*, babies born to mothers who smoke tend to have lower
+birth weight than babies born to mothers who do not smoke.
+
+
+# Questions
+
+Test the following hypotheses at $\alpha$ = 0.05:
+* The average mother’s age is significantly different between mothers who smoked
+during pregnancy and mothers who did not smoke during pregnancy.  [variables
+`mage` and `smoke`]
+* The percentage of premature infants born to mothers who smoked during
+pregnancy is different than the percentage of premature infants born to mothers
+who did not smoke during pregnancy.  [variables `premie` and `smoke`]
+
+First Write your hypotheses and then use R to test them. 
+
