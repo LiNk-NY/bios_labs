@@ -1,0 +1,282 @@
+---
+title: "Exploring Data and Graphs with Numerical Summaries"
+author: "PUBH 614"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Instructions
+
+To get familiar with R Markdown, open the boiler plate introduction to 
+R Markdown by going to `File` > `New File...` > `R Markdown`
+
+## R Scripts vs R Markdown
+
+R scripts are purely R code and R Markdown allows you to combine instructions
+like these with R code. R scripts end in the `.R` file extension. R Markdown
+files end in `.Rmd` file extension.
+
+## Installing R packages
+
+Try installing the `haven` package in the console below.
+*Important*. Package installations should not be part of your code but run
+interactively (in the console below).
+
+```{r,eval=FALSE}
+install.packages("haven")
+```
+## Loading a package
+
+In R you load packages using: 
+
+```{r}
+library(haven)
+```
+
+Note that this command will not work if you have not installed the package
+first.
+
+## File paths
+
+Finding your files on your computer is important so that you can tell R
+where to go look for it. The easiest way to go about it is to put the file
+in the same folder as this R Markdown file. The other way is to get the
+file path from your operating system and tell R where the file is located.
+In the example below, I used the easier option.
+
+## Importing data
+
+With the `haven` package, we can import SPSS data into our R session:
+
+```{r}
+birth <- read_spss("NCBIRTH800mod.sav")
+```
+# Lab 1 Data Exploration
+
+Now that we have the data loaded, we can explore it. I recommend a set of
+functions to explore the data. The `head` function gives you a small view
+of the top of the dataset. 
+
+```{r}
+head(birth)
+```
+
+Use the `dim` function to see the dimensions (rows by columns) of the data:
+
+```{r}
+dim(birth)
+```
+
+There are 800 rows and 15 columns in the dataset.
+
+# Data Types
+
+R has 3 basic data types:
+
+## Logical 
+
+```{r}
+TRUE
+FALSE
+```
+
+## Numeric
+
+```{r}
+1
+2
+3
+```
+
+## Character
+
+```{r}
+"red"
+"orange"
+"yellow"
+```
+
+Notice that each line is a command. We will see how to combine these into one
+line using the `c` (combine) function.
+
+## Lab 2
+
+In this example, what percentage of mothers smoked during pregnancy? Display
+these data using a bar chart as well. 
+
+First we create a 'table' variable from the smoke variable by running the
+`table` function on the variable. We extract variables using the dollar sign
+symbol `$` from the dataset. We then use `<-` to store the 'table' variable
+into our R session. 
+We then run `prop.table` on the result with some adjustments to make it into
+a percent (multiply by 100 and round decimal places).
+
+```{r}
+## create a 
+(smoke_table <- table(birth$smoke))
+## proportions in percentages
+round(prop.table(smoke_table), 3) * 100
+```
+
+Because our dataset did not contain any labels as imported, we will have to 
+add them ourselves.
+
+### Factors
+
+In R, numeric variables with labels are what we call factors. To create a factor
+we use the `factor` function. As you guessed it, we use the `factor` function
+on the single _extracted_ variable. Remember we need to assign the output of
+this function to a variable using the `<-` assignment operator. 
+
+```{r}
+smoked <- factor(
+    x = birth$smoke,
+    levels = 0:1,
+    labels = c("Did not smoke", "Smoked")
+)
+```
+
+As you can see, R does not care about extra spaces or carriage returns in our
+code but we do because we want to be able to easily read the code.
+
+Notice that this variable is not part of the dataset. It only lives within our
+session as reflected by the Global Environment on the top right pane in
+RStudio. If we want to include this in our dataset, we have to add it as
+a variable:
+
+```{r}
+birth$smoked <- smoked
+head(birth)
+```
+
+## Histograms
+
+```{r}
+barplot(smoke_table)
+```
+
+Notice that our original 'table' variable (`smoke_table`) did not have any
+lables. We can now use are updated variable `smoked` to FIRST create a
+table from it and then feed it to barplot:
+
+```{r}
+barplot(table(smoked))
+```
+
+## Crosstabs
+
+In R, we are capable of creating crosstabs from two variables using
+formula notation using the `xtabs` function. Let's see how this looks.
+
+```{r}
+xtabs(~ ethnmom + smoke, data = birth)
+```
+
+We may also use the familiar `table` function to do the same:
+
+```{r}
+table(birth$ethnmom, birth$smoke)
+```
+
+Notice that in both commands, the dataset has to be referenced somehow so that R
+knows where the variables are coming from `data = birth` and `birth$smoke`.
+
+### Proportions for crosstabs
+
+Again we use the `prop.table` function to get the proportions but first,
+let's create a table variable from one of these commands:
+
+```{r}
+eth_by_smoke <- xtabs(~ ethnmom + smoked, data = birth)
+```
+
+Now we use the `prop.table` command with the included argument `margin = 1`:
+This tells R to create the proportions across the rows. We also round and 
+multiply by 100 to get a percentage.
+
+```{r}
+round(prop.table(eth_by_smoke, margin = 1), 3) * 100
+```
+
+## Grouped Barplot
+
+```{r}
+barplot(eth_by_smoke, beside = TRUE)
+```
+
+# Numerical summaries
+
+In this sample, what was the average birth weight (in grams)? Standard
+Deviation, Minimum and Maximum? Display this data using a histogram as well.
+Is the distribution of birth weight symmetric or skewed?
+
+```{r}
+summary(birth$tgrams)
+```
+
+We use a histogram to visualize numerical continuous data.
+
+```{r}
+hist(birth$tgrams)
+```
+
+## Getting a normal curve overlay
+
+We run this code to get a normal distribution curve on top of the
+histogram. We can also use other facilities that may make this easier in
+packages such as `ggplot2`.
+
+```{r}
+x <- birth$tgrams
+h <- hist(x, breaks=10, 
+    xlab="Baby weight in grams", main="Histogram with Normal Curve")
+xfit <- seq(min(x),max(x),length=40)
+yfit <- dnorm(xfit,mean=mean(x),sd=sd(x))
+yfit <- yfit*diff(h$mids[1:2])*length(x)
+lines(xfit, yfit, col="red", lwd=2) 
+```
+
+## Grouped summaries
+
+In this sample, what was the distribution of birth weight (in grams) by mother’s
+smoking status?
+
+```{r}
+no_smoke <- birth$tgrams[birth$smoke == 0]
+yes_smoke <- birth$tgrams[birth$smoke == 1]
+summary(no_smoke)
+summary(yes_smoke)
+```
+
+### Grouped boxplots
+
+Here we use formula notation to indicate to R how to take numerical data
+and what variable to use when splitting the data.
+
+On the left hand side of the tilde `~` we enter the name of the numerical 
+variable we will be using to compare distributions across groups. The
+`smoked` variable will be the grouping variable and again we tell R that
+the data comes from the birth dataset by doing `data = birth`.
+
+```{r}
+boxplot(tgrams ~ smoked, data = birth)
+```
+
+# Questions (answers submitted in Quiz 2):
+
+1. Describe the basic demographic characteristic of the sample
+
+* Mother’s age [variable: `mage`]
+* Marital status [variable: `marital`]
+* Race of mother [variable: `ethnmom`]
+
+2. What was the median mother’s age for mothers who smoked during pregnancy vs.
+mothers who did not smoke during pregnancy?
+
+* Variables: `mage` and `smoked`
+
+3. Were there any outliers in mother’s age in either of the smoking status
+groups (smokers vs. non-smokers) [Hint: inspect the side-by-side box plot].
