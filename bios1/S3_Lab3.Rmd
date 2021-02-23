@@ -119,6 +119,12 @@ from the `i` *INSIDE* the `for` loop.
 for (i in 1:3) {
     print(i)
 }
+
+for (i in letters) {
+   print(paste("This is letter", i))
+}
+
+paste("This is letter", letters)
 ```
 
 ## Allocate and fill method
@@ -129,6 +135,7 @@ fill" method. It provides an efficient use of memory rather than the
 
 ```{r}
 fill_vector <- vector(mode = "numeric", length = 10)
+# fill_vector <- rep(x = 0, times = 10)
 fill_vector
 ```
 

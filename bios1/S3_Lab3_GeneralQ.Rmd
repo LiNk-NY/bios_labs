@@ -1,0 +1,71 @@
+---
+title: "General FA-Questions"
+author: "BIOS 620"
+date: "2/22/2021"
+output:
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## How to import a data set?
+
+1. Find your dataset after download.
+
+### absolute path 
+
+Use this function to find the _absolute path_ to your file. 
+
+```{r,eval=FALSE}
+file.choose()
+# [1] "/cloud/project/data/birthwt.csv"
+```
+
+### relative path
+
+Tip: It is a good idea to always put the data in the same folder as the
+RMarkdown file that you are knitting.
+
+Note that `getwd()` is good for R scripts but does not work for RMarkdown.
+
+```{r}
+# put the data where the Rmd lives
+head( read.csv("birthwt.csv") )
+```
+
+2. Figure out what function do we need to use to import (file extension).
+
+```{r}
+# ?read.csv
+birthwt <- read.csv(file = "birthwt.csv", header = TRUE, sep = ",")
+# explore the data
+head(birthwt)
+dim(birthwt)
+class(birthwt)
+```
+
+## What is y hat? 
+
+```{r}
+data("mtcars")
+head(mtcars)
+
+fit <- lm(mpg ~ wt, data = mtcars)
+
+plot(mtcars$wt, mtcars$mpg)
+abline(fit, col = "red")
+
+# Yhat = A + B*X1
+yhat_vals <- coef(fit)[1] + coef(fit)[2]*mtcars$wt
+head(yhat_vals)
+head(predict(fit))
+```
+
+## What do we need `rnorm` for?
+
+```{r}
+AGE <- rnorm(100, mean = 30, sd = 5)
+```
+
