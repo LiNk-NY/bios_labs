@@ -181,7 +181,7 @@ first with the `library` function.
 
 ```{r}
 library(haven)
-nhanes <- read_spss("NHANES.sav")
+nhanes <- read_spss("NHANES_Lab4.sav")
 ```
 
 Note that the NHANES dataset comes with labels:
