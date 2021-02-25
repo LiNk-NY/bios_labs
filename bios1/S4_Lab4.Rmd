@@ -1,0 +1,226 @@
+---
+title: "Linear Regression with Categorical Variables"
+author: "BIOS 620 / PUBH 614"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Example Dataset: `mtcars`
+
+## Motor Trend Car Road Tests
+
+```{r}
+data("mtcars")
+```
+
+Explore the data with some usual functions:
+
+```{r}
+# ?mtcars
+dim(mtcars)
+head(mtcars)
+names(mtcars)
+```
+
+# Describe each variable numerically and visually
+
+To describe a numeric variable, `summary` is a good function to use:
+
+```{r}
+summary(mtcars$mpg)
+sd(mtcars$mpg)
+```
+
+To visualize the distribution of a numeric continuous variable, use
+`hist` to see a histogram.
+
+```{r}
+hist(mtcars$mpg, main = "Histogram of mpg")
+```
+
+## Transmission
+
+The transmission variable `am` is coded as `0` for automatic and `1` for
+manual.
+
+```{r}
+table(mtcars$am)
+prop.table( table(mtcars$am) )
+```
+
+To see how transmission type relates to miles per gallon, we use a simple
+linear model:
+
+*Note*. In R, the lowest value is the reference category by default.
+
+```{r}
+fit1 <- lm( mpg ~ 1 + am, data = mtcars)
+summary(fit1)
+```
+
+To futher verify, we can also look at the means in each group:
+
+```{r}
+tapply(X = mtcars$mpg, INDEX = mtcars$am, FUN = mean)
+```
+
+### Reverse dummy coding
+
+Say we wanted to see the effect of having an automatic transmission compared
+to a manual one, we would reverse the coding of the variable. We use
+the `ifelse` function to create a conditional statement (i.e., does `am` equal
+`0`?) to reverse the coding by setting `0` to `1` and all others (`1`) to `0`.
+
+```{r}
+(mtcars$am.new <- ifelse(mtcars$am == 0, 1, 0))
+```
+
+We then fit the model again with our new variable `am.new`:
+
+```{r}
+fit2 <- lm( mpg ~ 1 + factor(am.new), data = mtcars)
+summary(fit2)
+```
+
+Note that we have to tell R that we have a factor variable by enclosing the
+variable name in `factor()`, otherwise R will think it is a numeric variable.
+
+We can now check the difference in the coefficients with these two coding
+schemes:
+
+```{r}
+fit1
+fit2
+```
+
+# Factors
+
+The formal way to represent categorical variables in R is to use factors.
+This avoids us the creation of dummy variables that is necessary in other
+analysis software such as SPSS and SAS (for linear regressions).
+
+To create a factor, we need to use a numeric vector variable (`am`) and
+use the `factor` function. We can also add labels to each 'level' (unique
+value) in the variable with the `labels` argument.
+
+```{r}
+am_factor <- factor(mtcars$am, levels = c(0, 1),
+    labels = c("automatic", "manual"))
+am_factor
+```
+
+We can then add our factor variable back into the data:
+
+```{r}
+mtcars$am_factor <- am_factor
+```
+
+## contrasts and relevel
+
+In order to see the reference category for any factor, we can use
+the contrasts function. It will show us a binary matrix (see lecture) where
+the row with all zeros across is designated the reference category. Let's try
+it on the `am_factor` variable:
+
+```{r}
+contrasts(am_factor)
+```
+
+When using factors in a linear model, R will take the lowest value
+as the reference category. In order to change this, we can use the
+`relevel` function.
+
+```{r}
+relevel(mtcars$am_factor, ref = "manual")
+```
+
+Note that we need to save this change back into the data for the changes
+to hold:
+
+```{r}
+mtcars$am_factor <- relevel(mtcars$am_factor, ref = "manual")
+```
+
+### Practice
+
+Run `contrasts` on the cylinder (`cyl`) variable in the mtcars dataset:
+
+```{r}
+
+```
+
+# Describe pairwise relationship
+
+To visually compare `mpg` to `am` (transmission), we could use a `boxplot`.
+
+```{r}
+boxplot(mpg ~ am, data = mtcars)
+```
+
+We can also visually compare all the variables in the data:
+
+```{r}
+library(psych)
+pairs.panels(mtcars)
+```
+
+We can also describe the relationship between `mpg` and `am` numerically:
+
+```{r}
+with(mtcars, cor(am, mpg))
+```
+
+# Reading an SPSS file
+
+SPSS files end in the `.sav` file extension. To import these type of files
+into R, we recommend using the `haven` package. Remember, load the package
+first with the `library` function.
+
+```{r}
+library(haven)
+nhanes <- read_spss("NHANES.sav")
+```
+
+Note that the NHANES dataset comes with labels:
+
+```{r}
+(edu_levels <- attributes(nhanes$Education)$labels)
+```
+
+We can use these labels to create a factor:
+
+```{r}
+factor(nhanes$Education, levels = edu_levels, labels = names(edu_levels))
+```
+
+# Exercises
+
+Using the National Health and Nutrition Examination Survey (NHANES) data (SPSS
+`.sav` format) to fit a multivariate model with `BPXSY1` as response variable,
+`Education` as study variable, `Exactage` and `Male` as confounders.
+
+* describe each variable numerically and visually
+
+```{r}
+
+```
+
+* describe pairwise relationship between the study variable and outcome
+variable numerically and visually (no hypothesis testing needed)
+
+```{r}
+
+```
+
+* for the "Education" variable (which is a categorical variable), fit the model
+in two ways and compare the results:
+    + creating two dummy variables using if/else condition
+    + using the factor() function
+      + Define/change reference category for categorical variable in R
+
+```{r}
+
+```
