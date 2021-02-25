@@ -65,6 +65,11 @@ head(predict(fit))
 
 ## What do we need `rnorm` for?
 
+`rnorm` and `rbinom` allow us to create a random variable from the specified
+distribution (either normal or binomial in this case). Here we take 100 random
+values from the normal distribution with a mean of 30 and a standard deviation
+of 5:
+
 ```{r}
 AGE <- rnorm(100, mean = 30, sd = 5)
 ```
