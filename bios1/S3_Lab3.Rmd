@@ -1,7 +1,8 @@
 ---
 title: "Multivariate Regression for Confounding Models"
 author: "BIOS 620 / PUBH 614"
-output: html_document
+output:
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}

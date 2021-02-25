@@ -1,6 +1,6 @@
 ---
 title: "One-sample tests"
-author: "PH 750"
+author: "PUBH 614"
 output: word_document
 ---
 
