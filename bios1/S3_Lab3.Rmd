@@ -197,7 +197,7 @@ Finally, write a `for` loop to gather results from 1000 seeds and
 quantify the percent bias (PRB) of estimating coefficient of SL due to
 omitting confounders.
 
-$PRB = \frac{1}{S} \sum_{s=1}^{1000} 100 * \frac{\beta_1^{(s)}-\beta_1^{tru}}{\beta_1^{tru}}$
+$PRB = \frac{1}{S} \sum_{s=1}^{1000} 100 \times \frac{\beta_1^{(s)}-\beta_1^{tru}}{\beta_1^{tru}}$
 
 ```{r}
 
