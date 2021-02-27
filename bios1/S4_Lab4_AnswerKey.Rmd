@@ -1,0 +1,166 @@
+---
+title: "Linear Regression with Categorical Variables"
+author: "BIOS 620 / PUBH 614"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Exercises
+
+Using the National Health and Nutrition Examination Survey (NHANES) data (SPSS
+`.sav` format) to fit a multivariate model with `BPXSY1` as response variable,
+`Education` as study variable, `Exactage` and `Male` as confounders.
+
+* describe each variable numerically and visually
+
+First, read in the data:
+
+```{r}
+library(haven)
+nhanes <- read_spss("NHANES_Lab4.sav")
+```
+
+## Summarize and visualize numeric variables
+
+### Systolic Blood Pressure
+
+```{r}
+summary(nhanes$BPXSY1)
+hist(nhanes$BPXSY1)
+boxplot(nhanes$BPXSY1)
+```
+
+### Exact age
+
+```{r}
+summary(nhanes$Exactage)
+hist(nhanes$Exactage)
+boxplot(nhanes$Exactage)
+```
+
+## Summarize and visualize categorical variables
+
+### Sex
+
+We can leave `Male` as-is because it is binary.
+
+```{r}
+table(nhanes$Male)
+prop.table( table(nhanes$Male) )
+```
+
+### Education
+
+*Note*. We want to create an `Education` factor with labels for informative 
+plots and outputs.
+
+```{r}
+table(nhanes$Male)
+edu_levels <- attributes(nhanes$Education)$labels
+nhanes$Edu_f <- factor(nhanes$Education, levels = edu_levels,
+    labels = names(edu_levels))
+table(nhanes$Edu_f)
+prop.table( table(nhanes$Edu_f) )
+```
+
+## Describe pairwise relationships
+
+* between the study and outcome variables  numerically and visually (no
+hypothesis testing needed)
+
+Mean SBP by Education level
+
+```{r}
+tapply(X = nhanes$BPXSY1, INDEX = nhanes$Edu_f, FUN = mean, na.rm = TRUE)
+## or
+aggregate(x = nhanes$BPXSY1, by = list(Edu_level = nhanes$Edu_f),
+    FUN = mean, na.rm = TRUE)
+## or even
+sapply(split(nhanes$BPXSY1, nhanes$Edu_f), mean, na.rm = TRUE)
+```
+
+We add proper labels, our outputs are easily understood. We can also add
+comments and descriptions in this our RMarkdown document. 
+
+### Correlation
+
+Spearman correlation (is there a non-parametric monotonic relationship?)
+
+```{r}
+with(nhanes,
+     cor(Education, BPXSY1, use = "pairwise.complete.obs", method = "spearman")
+)
+```
+
+Visualize SBP distribution by Education level:
+
+```{r}
+boxplot(BPXSY1 ~ Edu_f, data = nhanes)
+```
+
+## Fit the model
+
+* for the "Education" variable (which is a categorical variable), fit the model
+in two ways and compare the results:
+    + creating two dummy variables using if/else condition
+    + using the factor() function
+      + Define/change reference category for categorical variable in R
+
+### Creating two dummy variables
+
+First, we reference our categories to guide the dummy recoding. 
+
+```{r}
+edu_levels
+```
+
+*Note*. Because we want the direction of the effect (coefficient) to be
+positive, in this case, we use "Graduated from College" as the reference.
+
+```{r}
+nhanes$No_HS     <- ifelse(test = nhanes$Education == 1,  yes = 1, no = 0)
+nhanes$HS <- ifelse(test = nhanes$Education == 2, yes = 1, no = 0)
+fit1 <- lm(BPXSY1 ~ 1 + No_HS + HS + factor(Male), data = nhanes)
+summary(fit1)
+```
+
+### Using the `factor` function
+
+We can re-demo the factor creation from above because we are using a different
+name for the factor variable (`Edu_f`).
+
+```{r}
+edu_levels <- attributes(nhanes$Education)$labels
+nhanes$Edu_f <- factor(nhanes$Education, levels = edu_levels,
+    labels = names(edu_levels))
+```
+
+We check the reference category in the variable:
+
+```{r}
+contrasts(nhanes$Edu_f)
+```
+
+And relevel so that "Graduated from College" is the reference.
+
+```{r}
+nhanes$Edu_f <- relevel(nhanes$Edu_f, ref = "Graduated from College")
+```
+
+We always check our work:
+
+```{r}
+contrasts(nhanes$Edu_f)
+```
+
+Now, we re-fit the model using this factor variable.
+
+```{r}
+fit2 <- lm(BPXSY1 ~ 1 + Edu_f + factor(Male), data = nhanes)
+summary(fit2)
+```
+
+Positive coefficients!
