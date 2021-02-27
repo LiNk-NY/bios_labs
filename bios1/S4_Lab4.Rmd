@@ -161,7 +161,7 @@ Run `contrasts` on the cylinder (`cyl`) variable in the `mtcars` dataset:
 
 ```
 
-# Describe pairwise relationship
+# Describe pairwise relationships
 
 To visually compare `mpg` to `am` (transmission), we could use a `boxplot`.
 
