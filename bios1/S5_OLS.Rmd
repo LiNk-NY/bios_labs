@@ -1,6 +1,6 @@
 ---
 title: "OLS Regression Example"
-author: "BIOS 620 / PUBH"
+author: "BIOS 620 / PUBH 614"
 date: "2/27/2021"
 output: html_document
 runtime: shiny
