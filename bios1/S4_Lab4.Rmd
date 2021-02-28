@@ -23,6 +23,7 @@ Explore the data with some usual functions:
 dim(mtcars)
 head(mtcars)
 names(mtcars)
+class(mtcars)
 ```
 
 # Describe each variable numerically and visually
@@ -57,11 +58,11 @@ linear model:
 *Note*. In R, the lowest value is the reference category by default.
 
 ```{r}
-fit1 <- lm( mpg ~ 1 + am, data = mtcars)
+fit1 <- lm(mpg ~ 1 + am, data = mtcars)
 summary(fit1)
 ```
 
-To futher verify, we can also look at the means in each group:
+To further verify, we can also look at the means in each group:
 
 ```{r}
 tapply(X = mtcars$mpg, INDEX = mtcars$am, FUN = mean)
@@ -75,13 +76,14 @@ the `ifelse` function to create a conditional statement (i.e., does `am` equal
 `0`?) to reverse the coding by setting `0` to `1` and all others (`1`) to `0`.
 
 ```{r}
-(mtcars$am.new <- ifelse(mtcars$am == 0, 1, 0))
+(  mtcars$am_auto <- ifelse(mtcars$am == 0, 1, 0)  )
+# mtcars$am_auto
 ```
 
 We then fit the model again with our new variable `am.new`:
 
 ```{r}
-fit2 <- lm( mpg ~ 1 + factor(am.new), data = mtcars)
+fit2 <- lm(mpg ~ 1 + factor(am_auto), data = mtcars)
 summary(fit2)
 ```
 
@@ -116,6 +118,7 @@ We can then add our factor variable back into the data:
 
 ```{r}
 mtcars$am_factor <- am_factor
+head(mtcars)
 ```
 
 ## contrasts and relevel
@@ -144,15 +147,21 @@ to hold:
 mtcars$am_factor <- relevel(mtcars$am_factor, ref = "manual")
 ```
 
+Check that the reference category has changed:
+
+```{r}
+contrasts(mtcars$am_factor)
+```
+
 ### Practice
 
-Run `contrasts` on the cylinder (`cyl`) variable in the mtcars dataset:
+Run `contrasts` on the cylinder (`cyl`) variable in the `mtcars` dataset:
 
 ```{r}
 
 ```
 
-# Describe pairwise relationship
+# Describe pairwise relationships
 
 To visually compare `mpg` to `am` (transmission), we could use a `boxplot`.
 
@@ -171,6 +180,8 @@ We can also describe the relationship between `mpg` and `am` numerically:
 
 ```{r}
 with(mtcars, cor(am, mpg))
+# equivalently
+# cor(mtcars$am, mtcars$mpg)
 ```
 
 # Reading an SPSS file
