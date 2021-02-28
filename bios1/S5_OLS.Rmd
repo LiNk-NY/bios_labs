@@ -1,0 +1,131 @@
+---
+title: "OLS Regression Example"
+author: "BIOS 620 / PUBH"
+date: "2/27/2021"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Example dataset `mtcars`
+
+Take a subset of the `mtcars` dataset:
+
+```{r}
+data("mtcars", package = "datasets")
+mtcars <- mtcars[mtcars$wt < 3, ]
+```
+
+# Simple Linear Regression
+
+`lm(mpg ~ wt, data = mtcars)`
+
+```{r tabsets, echo=FALSE}
+suppressPackageStartupMessages({
+  library(plotly)
+  library(purrr)
+  library(broom)
+  library(shiny)
+})
+
+shinyApp(
+  ui = fluidPage(
+    verbatimTextOutput("summary"),
+    plotlyOutput("p")
+  ),
+
+  server = function(input, output, session) {
+    rv <- reactiveValues(
+      mpg = mtcars$mpg,
+      wt = mtcars$wt
+    )
+    grid <- reactive({
+      data.frame(wt = seq(min(rv$wt) - .25, max(rv$wt) + .25, length = 10))
+    })
+    model <- reactive({
+      mtcars <- data.frame(wt = rv$wt, mpg = rv$mpg)
+      lm(mpg ~ wt, data = mtcars)
+    })
+
+    output$p <- renderPlotly({
+      # creates a list of circle shapes from x/y data
+      circles <- map2(rv$wt, rv$mpg,
+                      ~list(
+                        type = "circle",
+                        # anchor circles at (mpg, wt)
+                        xanchor = .x,
+                        yanchor = .y,
+                        # give each circle a 2 pixel diameter
+                        x0 = -4, x1 = 4,
+                        y0 = -4, y1 = 4,
+                        xsizemode = "pixel",
+                        ysizemode = "pixel",
+                        # other visual properties
+                        fillcolor = "blue",
+                        line = list(color = "transparent")
+                      )
+      )
+      squares <- Map(function(x0, x1, y0, y1) {
+        list(
+          type = "rect",
+          fillcolor = "orange",
+          line = list(color = "orange"),
+          xref = "x",
+          x0 = x0, x1 = x1,
+          yref = "y",
+          y0 = y0, y1 = y1,
+          opacity = 0.2
+        )
+      }, x0 = rv$wt, x1 = (rv$wt - residuals(model())),
+        y0 = predict(model()), y1 = rv$mpg)
+
+      f <- list(
+        family = "Courier New, monospace",
+        size = 18,
+        color = "#7f7f7f"
+      )
+      xlab <- list(
+        title = "Weight (1000 lbs.)",
+        titlefont = f
+      )
+      ylab <- list(
+        title = "Miles per Gallon (mpg)",
+        titlefont = f,
+        scaleanchor = "x",
+        scaleratio = 1
+      )
+
+      # plot the shapes and fitted line
+      plot_ly(width = 800, height = 800) %>%
+        add_lines(x = grid()$wt,
+                  y = predict(model(), grid()), color = I("red")) %>%
+        layout(
+          shapes = c(circles, squares), xaxis = xlab, yaxis = ylab,
+          autosize = FALSE
+        ) %>%
+        config(edits = list(shapePosition = TRUE))
+    })
+
+    output$summary <- renderPrint({
+      summary(model())
+    })
+
+    # update x/y reactive values in response to changes in shape anchors
+    observe({
+      ed <- event_data("plotly_relayout")
+      shape_anchors <- ed[grepl("^shapes.*anchor$", names(ed))]
+      if (length(shape_anchors) != 2) return()
+      row_index <- unique(readr::parse_number(names(shape_anchors)) + 1)
+      pts <- as.numeric(shape_anchors)
+      rv$wt[row_index] <- pts[1]
+      rv$mpg[row_index] <- pts[2]
+    })
+
+  },
+  options = list(height = 1200)
+)
+```
+
