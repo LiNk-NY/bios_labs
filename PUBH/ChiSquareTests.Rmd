@@ -1,0 +1,183 @@
+---
+title: "Lab Exercise Chi Square"
+author: "PUBH 614"
+date: "2/28/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Loading SPSS Data
+
+Use the `haven` package and the `read_spss` function to load SPSS data into the
+R session:
+
+```{r}
+library(haven)
+load_spss("stenosis_2014.sav")
+```
+
+1. Ensure that the data file is in the same folder as this RMarkdown file for
+staightforward read-in when knitting.
+2. You can find the full path to the file by using `file.choose()` and locating
+the file in your folders.
+
+```{r}
+data("HairEyeColor")
+head(HairEyeColor)
+femaleHEC <- HairEyeColor[, , "Female"]
+```
+
+These are the expected values from the `chisq.test` function.
+
+```{r}
+res <- chisq.test(femaleHEC)
+res$expected
+```
+
+## Manual calculation of expected values (advanced)
+
+To calculate manually, you need to use `rowSums` and `colSums` at
+each cell and then divide by the grand total: 
+
+$ e = \frac{row.sum \times col.sum}{grand.total} $
+
+For the first cell: 
+
+```{r}
+(rowSums(femaleHEC)[1] * colSums(femaleHEC)[1]) / sum(femaleHEC)
+```
+
+As you can see this matches with `res$expected[1]`: `r res$expected[1]`.
+
+To avoid doing all these calculations manually we can get a little help from
+R. 
+
+First we get all the combinations of `rowSums` and `columSums` pairs for each
+cell:
+
+```{r}
+( allCombos <- expand.grid(rowSums(femaleHEC), colSums(femaleHEC)) )
+```
+
+Note that we are getting the combinations down the columns of the matrix
+`femaleHEC`, (i.e., row1 & colsum1, row2 & colsum1, row3 & colsum1, row4 &
+colsum1). This indicates that our `byrow` argument in the `matrix` function
+below will be `FALSE` meaning the results are going down the columns and not
+across the rows.
+
+Now we loop through all of these values and apply the expected value equation
+at the same time:
+
+```{r}
+expecteds <- apply(allCombos, 1, function(x) x[[1]] * x[[2]])  / sum(femaleHEC)
+```
+
+Now we can reconstruct the matrix of results with the `matrix` function 
+and some arguments:
+
+```{r}
+exp_mat <- matrix(expecteds, byrow = FALSE, nrow = 4,
+    dimnames = list(rownames(femaleHEC), colnames(femaleHEC)))
+round(exp_mat, 5)
+```
+
+Comparing to the original results:
+
+```{r}
+res$expected
+```
+
+Looks good!
+
+## Percentages by rows
+
+The data is already a 'tally' table so we should only run `prop.table` to get
+percentages. Had we had a dataset, we would've had to run the `table` function.
+
+Now let's see the row percentages:
+
+```{r}
+femaleHEC
+prop.table(femaleHEC, margin = 1L)
+```
+
+
+# State you null and alternative hypothesis: 
+
+Chi-square test examines whether rows and columns of a contingency table are
+statistically significantly associated.
+
+* Null hypothesis (H0): the row and the column variables of the contingency
+    table are independent.
+* Alternative hypothesis (H1): row and column variables are dependent.
+
+from http://www.sthda.com/english/wiki/chi-square-test-of-independence-in-r
+
+Now we run the test:
+
+```{r}
+reschi <- chisq.test(femaleHEC)
+reschi
+reschi$p.value
+```
+
+Reject the $H_0$ hypothesis. Female hair and eye color are not independent. 
+
+# Relative Risk
+
+Let's create an example dataset from the University of Virginia:
+
+```{r}
+MI <- matrix(c(189, 104, 10845, 10933), nrow = 2, dimnames = 
+list(Group = c("Placebo","Aspirin"), MI = c("Yes","No")))
+```
+
+Source: https://data.library.virginia.edu/comparing-proportions-with-relative-risk-and-odds-ratios/
+
+Let's have a look at a mock (?) example of an RTC of Myocardial Infarction and
+aspirin treatment (from Agresti, 1996):
+
+```{r}
+MI
+prop.table(MI, margin = 1)
+```
+
+## Relative Risk calculation
+
+```{r}
+prop.out <- prop.table(MI, margin = 1)
+# relative risk of placebo vs. aspirin
+prop.out["Placebo", "Yes"] / prop.out["Aspirin","Yes"]
+```
+
+To get the 95% confidence interval, we use the `epitools` package:
+
+```{r}
+# run this line in the console if you don't have the package installed
+# install.packages("epitools")
+library(epitools)
+rr.out <- riskratio(MI, rev = "b")
+rr.out$measure
+```
+
+Hypothesis test for Relative Risk: 
+
+$H_0: RR = 1$
+$H_a: RR \neq 1$
+
+## Odds Ratio
+
+### State the hypothesis for the test:
+
+$H_0: OR = 1$
+$H_a: OR \neq 1$
+
+Use the `oddsratio` function in the `epicalc` package:
+
+```{r}
+oddsratio(MI)$measure
+```
+
