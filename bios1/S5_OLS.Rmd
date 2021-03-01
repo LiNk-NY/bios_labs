@@ -129,3 +129,4 @@ shinyApp(
 )
 ```
 
+This example was adapted from `plotly::plotly_example("shiny", "drag_markers")`.
