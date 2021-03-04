@@ -1,0 +1,98 @@
+---
+title: "OLS and MLE"
+author: "BIOS 620"
+date: "3/4/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Example dataset `mtcars`
+
+```{r}
+data("mtcars")
+head(mtcars)
+```
+
+## Simple linear Regression
+
+```{r}
+fit1 <- lm(mpg ~ qsec, mtcars)
+summary(fit1)
+```
+
+## Draw a scatterplot
+
+```{r}
+with(mtcars, plot(qsec, mpg))
+```
+
+## Predicted values from the regression (yhat)
+
+```{r}
+yhat0 <- predict(fit1)
+yhat1 <- fitted(fit1)
+yhat2 <- coef(fit1)[1] + coef(fit1)[2] * mtcars$qsec
+
+hatdf <- data.frame(yhat0, yhat1, yhat2)
+head(hatdf)
+```
+
+## Adding a regression line to our scatterplot
+
+```{r}
+lines(mtcars$qsec, yhat, col = "yellow", lty = 3, lwd = 3)
+abline(fit1, col = "green", lty = 2)
+```
+
+## Manual calculation of SST, RegSS, and ESS
+
+```{r}
+y_mean <- mean(mtcars$mpg)
+y_mean
+```
+
+```{r}
+SST <- sum((mtcars$mpg - y_mean)^2)
+SST
+```
+
+```{r}
+RegSS <- sum((yhat0 - y_mean)^2)
+```
+
+```{r}
+ESS <- sum((mtcars$mpg - yhat0)^2)
+```
+
+```{r}
+RegSS + ESS 
+```
+
+# Manually calculate the coefficients 
+
+```{r}
+x_mean <- mean(mtcars$qsec)
+```
+
+```{r}
+x <- mtcars$qsec
+y <- mtcars$mpg
+beta1 <- sum ((x - x_mean) * (y - y_mean)) / sum ((x - x_mean)^2 )
+```
+
+```{r}
+beta0 <- y_mean - beta1 * x_mean
+```
+
+```{r}
+coef(fit1)
+```
+
+```{r}
+beta0
+beta1
+```
+
