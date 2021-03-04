@@ -106,3 +106,27 @@ beta0
 beta1
 ```
 
+# Lab 5 (empirically prove formula and equation)
+
+Fit a regression with only 1 covariate (either by simulation or real data).
+
+* Fit a linear regression model to obtain the regression coefficients (intercept
+and slope) by using lm() function.
+
+* Manually calculate the coefficients using the formula below and compare with
+the model's output
+
+\[
+\begin{split}
+   \hat{\beta}_{1} &= \frac{\sum_{i=1}^{n}(x_{i} - \bar{x})(y_{i} - \bar{y})}{\sum_{i=1}^{n}(x_{i} - \bar{x})^2} \\
+   \hat{\beta}_{0} &= \bar{y} - \hat{\beta}_{1} \bar{x}.\\
+\end{split}
+\]
+
+* Calculate the
+LHS (left hand side) of following equation to see if the resulting numerical
+value is close to zero.
+
+\[
+  \sum_{i=1}^{n} (\hat{y}_{i} - \bar{y})(y_{i} - \hat{y}_{i}) = 0.
+\]
