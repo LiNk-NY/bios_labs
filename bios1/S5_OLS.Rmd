@@ -10,18 +10,25 @@ runtime: shiny
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Visual Example of OLS Regression
+
+Inspired by https://setosa.io/ev/ordinary-least-squares-regression/
+
 ## Example dataset `mtcars`
 
-Take a subset of the `mtcars` dataset:
+Take a subset of the `mtcars` dataset (cars less than 3k lbs.):
 
 ```{r}
 data("mtcars", package = "datasets")
 mtcars <- mtcars[mtcars$wt < 3, ]
 ```
 
-# Simple Linear Regression
+# Simple Linear Regression Model
 
-`lm(mpg ~ wt, data = mtcars)`
+```{r,eval=FALSE}
+lm(mpg ~ qsec, data = mtcars)
+```
+
 
 ```{r tabsets, echo=FALSE}
 suppressPackageStartupMessages({
@@ -40,22 +47,22 @@ shinyApp(
   server = function(input, output, session) {
     rv <- reactiveValues(
       mpg = mtcars$mpg,
-      wt = mtcars$wt
+      qsec = mtcars$qsec
     )
     grid <- reactive({
-      data.frame(wt = seq(min(rv$wt) - .25, max(rv$wt) + .25, length = 10))
+      data.frame(qsec = seq(min(rv$qsec) - 4, max(rv$qsec) + 4, length = 10))
     })
     model <- reactive({
-      mtcars <- data.frame(wt = rv$wt, mpg = rv$mpg)
-      lm(mpg ~ wt, data = mtcars)
+      mtcars <- data.frame(qsec = rv$qsec, mpg = rv$mpg)
+      lm(mpg ~ qsec, data = mtcars)
     })
 
     output$p <- renderPlotly({
       # creates a list of circle shapes from x/y data
-      circles <- map2(rv$wt, rv$mpg,
+      circles <- map2(rv$qsec, rv$mpg,
                       ~list(
                         type = "circle",
-                        # anchor circles at (mpg, wt)
+                        # anchor circles at (mpg, qsec)
                         xanchor = .x,
                         yanchor = .y,
                         # give each circle a 2 pixel diameter
@@ -79,7 +86,7 @@ shinyApp(
           y0 = y0, y1 = y1,
           opacity = 0.2
         )
-      }, x0 = rv$wt, x1 = (rv$wt - residuals(model())),
+      }, x0 = rv$qsec, x1 = (rv$qsec - residuals(model())),
         y0 = predict(model()), y1 = rv$mpg)
 
       f <- list(
@@ -88,7 +95,7 @@ shinyApp(
         color = "#7f7f7f"
       )
       xlab <- list(
-        title = "Weight (1000 lbs.)",
+        title = "Quarter Mile Time (sec)",
         titlefont = f
       )
       ylab <- list(
@@ -100,13 +107,22 @@ shinyApp(
 
       # plot the shapes and fitted line
       plot_ly(width = 800, height = 800) %>%
-        add_lines(x = grid()$wt,
+        add_lines(x = grid()$qsec,
                   y = predict(model(), grid()), color = I("red")) %>%
         layout(
           shapes = c(circles, squares), xaxis = xlab, yaxis = ylab,
           autosize = FALSE
         ) %>%
-        config(edits = list(shapePosition = TRUE))
+        config(edits = list(shapePosition = TRUE)) %>%
+        add_annotations(x = rv$qsec,
+                  y = rv$mpg,
+                  text = rownames(mtcars),
+                  xref = "x",
+                  yref = "y",
+                  showarrow = TRUE,
+                  arrowwidth = 1,
+                  ax = 10,
+                  ay = -20)
     })
 
     output$summary <- renderPrint({
@@ -120,7 +136,7 @@ shinyApp(
       if (length(shape_anchors) != 2) return()
       row_index <- unique(readr::parse_number(names(shape_anchors)) + 1)
       pts <- as.numeric(shape_anchors)
-      rv$wt[row_index] <- pts[1]
+      rv$qsec[row_index] <- pts[1]
       rv$mpg[row_index] <- pts[2]
     })
 
@@ -130,3 +146,31 @@ shinyApp(
 ```
 
 This example was adapted from `plotly::plotly_example("shiny", "drag_markers")`.
+
+```{r,warning=FALSE,message=FALSE}
+library(statsr)
+```
+
+Now, try running this interactively. Highlight the line of code and
+run it in the console.
+
+```{r,eval=FALSE, echo=FALSE}
+plot_ss(mpg, qsec, mtcars, showSquares = TRUE)
+```
+
+```{r}
+plot_ss(mpg, qsec, mtcars, showSquares = TRUE, leastSquares = TRUE)
+```
+
+```{r}
+plot(mtcars$qsec, mtcars$mpg, asp = 1)
+fit1 <- lm(mpg ~ qsec, data = mtcars)
+abline(fit1, col = "blue")
+# identify(mtcars$qsec, mtcars$mpg)
+rownum <- 4
+polygon(
+  x = c(rep(mtcars$qsec[rownum], 2), rep(mtcars$qsec[rownum] + c(mtcars$mpg[rownum] - fitted(fit1)[rownum]), 2)),
+  y = c(fitted(fit1)[rownum], rep(mtcars$mpg[rownum], 2), fitted(fit1)[rownum]),
+  border = "red"
+)
+```
