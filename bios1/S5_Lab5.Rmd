@@ -50,7 +50,7 @@ lines(mtcars$qsec, yhat0, col = "yellow", lty = 3, lwd = 3)
 abline(fit1, col = "green", lty = 2)
 ```
 
-## Manual calculation of SST, RegSS, and ESS
+## Manual calculation of TSS, RegSS, and ESS
 
 ```{r}
 y_mean <- mean(mtcars$mpg)
@@ -58,8 +58,8 @@ y_mean
 ```
 
 ```{r}
-SST <- sum((mtcars$mpg - y_mean)^2)
-SST
+TSS <- sum((mtcars$mpg - y_mean)^2)
+TSS
 ```
 
 ```{r}
