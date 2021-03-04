@@ -94,7 +94,7 @@ beta1 <- sum ((x - x_mean) * (y - y_mean)) / sum ((x - x_mean)^2 )
 ```
 
 ```{r}
-beta0 <- y_mean - beta1 * x_mean
+beta0 <- y_mean - (beta1 * x_mean)
 ```
 
 ```{r}
