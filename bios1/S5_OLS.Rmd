@@ -117,12 +117,19 @@ shinyApp(
         add_annotations(x = rv$qsec,
                   y = rv$mpg,
                   text = rownames(mtcars),
+                  textangle = 45,
                   xref = "x",
                   yref = "y",
                   showarrow = TRUE,
                   arrowwidth = 1,
                   ax = 10,
-                  ay = -20)
+                  ay = -20,
+                  font = list(
+                      color = '#264E86',
+                      family = 'sans serif',
+                      size = 14
+                  )
+        )
     })
 
     output$summary <- renderPrint({
