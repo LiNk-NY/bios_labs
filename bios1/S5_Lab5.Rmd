@@ -2,7 +2,9 @@
 title: "OLS and MLE"
 author: "BIOS 620"
 date: "3/4/2021"
-output: word_document
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -43,7 +45,8 @@ head(hatdf)
 ## Adding a regression line to our scatterplot
 
 ```{r}
-lines(mtcars$qsec, yhat, col = "yellow", lty = 3, lwd = 3)
+with(mtcars, plot(qsec, mpg))
+lines(mtcars$qsec, yhat0, col = "yellow", lty = 3, lwd = 3)
 abline(fit1, col = "green", lty = 2)
 ```
 
@@ -72,6 +75,13 @@ RegSS + ESS
 ```
 
 # Manually calculate the coefficients 
+
+\[
+\begin{split}
+   \hat{\beta}_{1} &= \frac{\sum_{i=1}^{n}(x_{i} - \bar{x})(y_{i} - \bar{y})}{\sum_{i=1}^{n}(x_{i} - \bar{x})^2} \\
+   \hat{\beta}_{0} &= \bar{y} - \hat{\beta}_{1} \bar{x}.\\
+\end{split}
+\]
 
 ```{r}
 x_mean <- mean(mtcars$qsec)
