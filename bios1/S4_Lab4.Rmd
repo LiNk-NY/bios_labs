@@ -1,6 +1,6 @@
 ---
 title: "Linear Regression with Categorical Variables"
-author: "BIOS 620 / PUBH 614"
+author: "BIOS 620"
 output: word_document
 ---
 
@@ -109,9 +109,10 @@ use the `factor` function. We can also add labels to each 'level' (unique
 value) in the variable with the `labels` argument.
 
 ```{r}
-am_factor <- factor(mtcars$am, levels = c(0, 1),
+am_factor <- factor(x = mtcars$am, levels = c(0, 1),
     labels = c("automatic", "manual"))
-am_factor
+head(am_factor)
+class(am_factor)
 ```
 
 We can then add our factor variable back into the data:
@@ -198,13 +199,14 @@ nhanes <- read_spss("NHANES_Lab4.sav")
 Note that the NHANES dataset comes with labels:
 
 ```{r}
-(edu_levels <- attributes(nhanes$Education)$labels)
+( edu_levels <- attributes(nhanes$Education)$labels )
 ```
 
 We can use these labels to create a factor:
 
 ```{r}
-factor(nhanes$Education, levels = edu_levels, labels = names(edu_levels))
+nhanes$Education_f <- factor(nhanes$Education,
+    levels = edu_levels, labels = names(edu_levels))
 ```
 
 # Exercises
