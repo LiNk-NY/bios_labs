@@ -161,23 +161,32 @@ library(statsr)
 Now, try running this interactively. Highlight the line of code and
 run it in the console.
 
-```{r,eval=FALSE, echo=FALSE}
-plot_ss(mpg, qsec, mtcars, showSquares = TRUE)
+```{r,eval=FALSE, echo=TRUE}
+plot_ss(qsec, mpg, mtcars, showSquares = TRUE)
 ```
 
+Here we see the line using OLS:
+
 ```{r}
-plot_ss(mpg, qsec, mtcars, showSquares = TRUE, leastSquares = TRUE)
+plot_ss(qsec, mpg, mtcars, showSquares = TRUE, leastSquares = TRUE)
 ```
+
+We can also do this with the stock graphics engine in R:
 
 ```{r}
 plot(mtcars$qsec, mtcars$mpg, asp = 1)
 fit1 <- lm(mpg ~ qsec, data = mtcars)
 abline(fit1, col = "blue")
 # identify(mtcars$qsec, mtcars$mpg)
-rownum <- 4
+rownum <- 20 
 polygon(
-  x = c(rep(mtcars$qsec[rownum], 2), rep(mtcars$qsec[rownum] + c(mtcars$mpg[rownum] - fitted(fit1)[rownum]), 2)),
-  y = c(fitted(fit1)[rownum], rep(mtcars$mpg[rownum], 2), fitted(fit1)[rownum]),
+  x = c(
+    rep(mtcars$qsec[rownum], 2),
+    rep(mtcars$qsec[rownum] - c(mtcars$mpg[rownum] - fitted(fit1)[rownum]), 2)
+  ),
+  y = c(
+    fitted(fit1)[rownum], rep(mtcars$mpg[rownum], 2), fitted(fit1)[rownum]
+  ),
   border = "red"
 )
 ```
