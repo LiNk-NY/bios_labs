@@ -123,7 +123,7 @@ positive, in this case, we use "Graduated from College" as the reference.
 ```{r}
 nhanes$No_HS     <- ifelse(test = nhanes$Education == 1,  yes = 1, no = 0)
 nhanes$HS <- ifelse(test = nhanes$Education == 2, yes = 1, no = 0)
-fit1 <- lm(BPXSY1 ~ 1 + No_HS + HS + factor(Male) + Exactage, data = nhanes)
+fit1 <- lm(BPXSY1 ~ 1 + No_HS + HS + Male + Exactage, data = nhanes)
 summary(fit1)
 ```
 
