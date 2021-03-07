@@ -36,6 +36,18 @@ fit1 <- lm(mpg ~ wt, data = mtcars)
 summary(fit1)
 ```
 
+Note that our model metrics of interest are contained in the `summary(fit1)`
+output. That includes the R-squared, the coefficients, and p-values. Look
+through it closely.
+
+To get the 95% confidence interval of the coefficients, we use the `confint`
+function:
+
+```{r}
+confint(fit1)
+```
+
+
 # Assumptions check
 
 ## Checking for normality in the outcome variable
