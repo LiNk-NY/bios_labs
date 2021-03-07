@@ -1,0 +1,223 @@
+---
+title: "Multiple Linear Regression"
+author: "PUBH 614"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Example dataset `mtcars`
+
+For more information about the dataset, type in `?mtcars` in the console.
+
+```{r}
+data(mtcars)
+# ?mtcars
+```
+
+## Correlation Test
+
+To see how two continuous variables relate to each other, we use a Pearson
+correlation:
+
+```{r}
+cor.test(mtcars$mpg, mtcars$wt)
+```
+
+## Simple Linear Regression
+
+We want to answer our research question. Is a car's weight associated
+with fuel efficiency (as measured by miles per gallon)?
+
+```{r}
+fit1 <- lm(mpg ~ wt, data = mtcars)
+summary(fit1)
+```
+
+# Assumptions check
+
+## Checking for normality in the outcome variable
+
+```{r}
+hist(mtcars$mpg, breaks = 10)
+```
+
+## Quantile-Quantile Plot
+
+We also can check for normality using a Q-Q plot:
+
+```{r}
+qqnorm(mtcars$mpg, pch = 1)
+qqline(mtcars$mpg)
+```
+
+The points should fall on the line to be considered normally distributed.
+
+## Homoscedasticity
+
+The assumption is that random variables have the same finite variance. That
+means that this plot should not have a specific pattern to it. The spread
+of the data points is approximately constant.
+
+```{r}
+plot(fitted(fit1), residuals(fit1))
+```
+
+## Normality of residuals
+
+The residuals should have a mean of zero and be approximately normal:
+
+```{r}
+hist(residuals(fit1), breaks = 10)
+```
+
+Checking the mean:
+
+```{r}
+mean(residuals(fit1))
+```
+
+It is a very small number (practically zero).
+
+## Independence
+
+Is the data independent? Probably not, the cars in the dataset are not all from
+different manufacturers. Some cars may be highly correlated because of this. 
+
+# Exploratory Data Analysis
+
+To visually compare all variables against each other, we can use this 
+`pair.panels` matrix. To see the relationship between any two variables find
+the intersecting square based on the row and the column variables, e.g.,
+the correlation for `mpg` and `hp` can be found in the box in row 1 column 4
+(correl coef: `-0.78`).
+
+```{r}
+library(psych)
+pairs.panels(mtcars, cex = 1.5)
+```
+
+# Multiple Linear Regression
+
+To include multiple variables in the regression, modify the formula inside
+the `lm` function:
+
+```{r}
+fit2 <- lm(mpg ~ wt + hp, data = mtcars)
+summary(fit2)
+```
+
+You can run the same steps as above with a multiple linear regression to check
+the assumptions.
+
+We will now go over a few additional notes for working with the SPSS
+dataset and factors in a linear regression model.
+
+# SideNotes
+
+## Loading an SPSS dataset into R
+
+I recommend using the `haven` package and the `read_spss` function in that
+package:
+
+```{r}
+library(haven)
+ncbirth <- read_spss("NCBIRTH800.sav")
+```
+
+Note. Make sure that the data file is in the same folder as the RMarkdown file
+for easier knitting. To learn how to knit, check out the RStudio RMarkdown
+tutorials.
+
+### including categorical variables as factors
+
+To include categorical variables, use the factor function to tell R
+which variables are categorical. Here we tell R that the number of cylinders
+(`cyl`) is categorical:
+
+```{r}
+fit3 <- lm(mpg ~ wt + hp + factor(cyl), data = mtcars)
+summary(fit3)
+```
+
+You should get a coefficient for each category that is not the reference.
+In R, the lowest value is taken as the reference. One way to check is to 
+use the `contrasts` function on a `factor` variable.
+
+```{r}
+table(mtcars$cyl)
+cyl_f <- factor(mtcars$cyl)
+contrasts(cyl_f)
+```
+
+Rows with all zeros across them are the reference, in this case `4` cylinders
+is the reference. 
+To change that, we use the `relevel` function and check again with `contrasts`.
+
+```{r}
+cyl_f <- relevel(cyl_f, ref = "8")
+contrasts(cyl_f)
+```
+
+## Data cleaning factors
+
+Because we used the `haven` package, the data retains the value labels for
+categorical variables. We can use this  information to clean up and create
+our factor variables. First we check the variable categories with a `table`
+function:
+
+```{r}
+table(ncbirth$ethnmom)
+```
+
+We then use the attributes function to extract the labels from the variable.
+Note that this only works on SPSS datasets as read in with the `haven` package.
+
+```{r}
+attributes(ncbirth$ethnmom)$labels
+```
+
+We can assign this to a variable for later use:
+
+```{r}
+ethnmom_levels <- attributes(ncbirth$ethnmom)$labels
+```
+
+Note that this variable is a numeric vector with names:
+
+```{r}
+class(ethnmom_levels)
+names(ethnmom_levels)
+```
+
+Now we create our factor variable with this information:
+
+```{r}
+ethnmom_f <- factor(ncbirth$ethnmom,
+    levels = ethnmom_levels, labels = names(ethnmom_levels))
+```
+
+As always, we check our work:
+
+```{r}
+table(ethnmom_f)
+```
+
+Now we can add this variable back into the data. We can use the same name as
+the variable that we created. On the left hand side we have the variable that
+we are creating in the data and on the right we have the actual factor variable
+that we created above.
+
+```{r}
+ncbirth$ethnmom_f <- ethnmom_f
+```
+
+Checking our work...
+
+```{r}
+head(ncbirth)
+```
+
+Now we see the variable we added to the extreme right of the dataset!
