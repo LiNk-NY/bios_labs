@@ -1,7 +1,7 @@
 ---
 title: "OLS and MLE"
 author: "BIOS 620"
-date: "3/4/2021"
+date: "3/8/2021"
 output:
   html_document:
     df_print: paged
@@ -113,6 +113,12 @@ See these links for digestible explanations of the method:
 https://alemorales.info/post/mle-nonlinear/
 
 https://rpsychologist.com/likelihood/
+
+Essentially, we want to maximize the probability of observing the values
+that we have by choosing the optimal parameters (e.g., normal dist.: mean and
+variance) for a given distribution. We use the computer to iterative over
+a number of parameters until it finds the paramterers where the likelihood
+is highest given our data.
 
 # Lab 5 (empirically prove formula and equation)
 
