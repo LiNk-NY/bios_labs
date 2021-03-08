@@ -106,6 +106,14 @@ beta0
 beta1
 ```
 
+# Maximum Likelihood Estimation
+
+See these links for digestible explanations of the method:
+
+https://alemorales.info/post/mle-nonlinear/
+
+https://rpsychologist.com/likelihood/
+
 # Lab 5 (empirically prove formula and equation)
 
 Fit a regression with only 1 covariate (either by simulation or real data).
