@@ -16,19 +16,41 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 data("mtcars")
 head(mtcars)
+tail(mtcars)
+dim(mtcars)
+class(mtcars)
+names(mtcars)
+rownames(mtcars)
 ```
 
 ## Simple linear Regression
 
+This is how equation notation in R relates to the lecture material.
+
 ```{r}
-fit1 <- lm(mpg ~ qsec, mtcars)
+Y ~ 1 + x1 + x2
+# Y_hat = (Intercept) + Beta_x1 + Beta_x2
+```
+
+```{r}
+fit1 <- lm(mpg ~ 1 + qsec, mtcars)
 summary(fit1)
+```
+
+See the difference between using `~ 1` and not with the `model.matrix` function
+(i.e., there is no difference).
+
+```{r}
+head(model.matrix(lm(mpg ~ 1 + qsec, mtcars)))
+head(model.matrix(lm(mpg ~ qsec, mtcars)))
 ```
 
 ## Draw a scatterplot
 
 ```{r}
 with(mtcars, plot(qsec, mpg))
+## also
+# plot(mtcars$qsec, mtcars$mpg)
 ```
 
 ## Predicted values from the regression (yhat)
@@ -48,6 +70,14 @@ head(hatdf)
 with(mtcars, plot(qsec, mpg))
 lines(mtcars$qsec, yhat0, col = "yellow", lty = 3, lwd = 3)
 abline(fit1, col = "green", lty = 2)
+```
+
+To see these two vectors side by side, we can use the `cbind` function or
+`data.frame`.
+
+```{r}
+head(cbind(mtcars$qsec, yhat0))
+# head(data.frame(mtcars$qsec, yhat0))
 ```
 
 ## Manual calculation of TSS, RegSS, and ESS
@@ -117,7 +147,7 @@ https://rpsychologist.com/likelihood/
 Essentially, we want to maximize the probability of observing the values
 that we have by choosing the optimal parameters (e.g., normal dist.: mean and
 variance) for a given distribution. We use the computer to iterative over
-a number of parameters until it finds the paramterers where the likelihood
+a number of parameters until it finds the parameters where the likelihood
 is highest given our data.
 
 # Lab 5 (empirically prove formula and equation)
