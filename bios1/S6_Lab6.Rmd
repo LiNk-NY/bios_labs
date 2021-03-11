@@ -9,8 +9,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Testing for significance
-# Example Dataset NHANES
+# Testing for significance of a multi-level categorical variable
+
+## Example Dataset NHANES
 
 ```{r}
 library(haven)
@@ -24,6 +25,15 @@ edu_levels <- attributes(nhanes$Education)$labels
 nhanes$Education_f <- factor(nhanes$Education,
     levels = edu_levels, labels = names(edu_levels))
 table(nhanes$Education_f)
+```
+
+## Complete cases
+
+```{r}
+cc <- complete.cases(
+    nhanes[, c("BPXSY1", "Male", "Exactage", "Education")]
+)
+nhanes_sub <- nhanes[cc, ]
 ```
 
 ### Model 1
@@ -40,24 +50,28 @@ fit2 <- lm(BPXSY1 ~ Education_f + Male + Exactage, data = nhanes_sub)
 summary(fit2)
 ```
 
+### F-test between two models
 
 ```{r}
 anova(fit1, fit2)
 ```
 
-```{r}
-nhanes_sub <- nhanes[, c("Education_f", "Male", "Exactage", "BPXSY1")]
-nhanes <- nhanes_sub[complete.cases(nhanes_sub), ]
-```
-
+### Likelihood ratio test
 
 ```{r}
-anova(fit1, fit2)
+library(lmtest)
+lrtest(fit1, fit2)
 ```
 
+# Model Diagnostics
 
+## Constant variance check
 
 # Example Dataset mtcars
+
+Now let's look at our usual dataset. We use this dataset because we can
+see an exaggerated effect in the plots of the residuals.
+
 ```{r}
 data("mtcars")
 head(mtcars)
@@ -94,6 +108,7 @@ qqline(res, col = "steelblue", lwd = 2)
 plot(yhat, res)
 ```
 
+### Scatter plot with smooth line
 
 ```{r}
 scatter.smooth(yhat, res, lpars = list(col = "red"))
@@ -102,9 +117,14 @@ scatter.smooth(yhat, res, lpars = list(col = "red"))
 ## Normality of Residuals
 
 ```{r}
-hist(res, breaks = 20)
+h <- hist(res, breaks = 20, col = "lightgray", xlab = "Residuals",
+    freq = FALSE, main = "Histogram of Residuals")
+xfit <- seq(min(res), max(res), length = 40)
+yfit <- dnorm(xfit, mean = mean(res), sd = sd(res))
+lines(xfit, yfit, col = "red", lwd = 2)
 ```
 
+## Calculate t-value
 
 Obtain values from the summary output:
 
@@ -120,5 +140,28 @@ Calculate the t-value:
 wt_coef / stderr
 ```
 
+## Assessing linearity
 
+```{r}
+with(nhanes,
+    scatter.smooth(Exactage, BPXSY1, lpars = list(col = "red", lwd = 3))
+)
+```
 
+A raw scatterplot won't help in general... but categorizing by age group
+and plotting the means would.
+
+```{r}
+library(Hmisc)
+nhanes$age_groups10 <- cut2(nhanes$Exactage, g = 14)
+mean_groups <- tapply(nhanes$BPXSY1, nhanes$age_groups10, mean, na.rm = TRUE)
+plot(mean_groups)
+```
+
+What about BMI and Age?
+
+```{r}
+nhanes$age_groups10 <- cut2(nhanes$Exactage, g = 14)
+mean_groups <- tapply(nhanes$BMXBMI, nhanes$age_groups10, mean, na.rm = TRUE)
+plot(mean_groups)
+```
