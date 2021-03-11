@@ -1,0 +1,124 @@
+---
+title: "Model Diagnostics"
+author: "BIOS 620"
+date: "3/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Testing for significance
+# Example Dataset NHANES
+
+```{r}
+library(haven)
+nhanes <- read_spss("data/NHANES_Lab4.sav")
+```
+
+## Create our factor variable
+
+```{r}
+edu_levels <- attributes(nhanes$Education)$labels
+nhanes$Education_f <- factor(nhanes$Education,
+    levels = edu_levels, labels = names(edu_levels))
+table(nhanes$Education_f)
+```
+
+### Model 1
+
+```{r}
+fit1 <- lm(BPXSY1 ~ Male + Exactage, data = nhanes_sub)
+summary(fit1)
+```
+
+### Model 2
+
+```{r}
+fit2 <- lm(BPXSY1 ~ Education_f + Male + Exactage, data = nhanes_sub)
+summary(fit2)
+```
+
+
+```{r}
+anova(fit1, fit2)
+```
+
+```{r}
+nhanes_sub <- nhanes[, c("Education_f", "Male", "Exactage", "BPXSY1")]
+nhanes <- nhanes_sub[complete.cases(nhanes_sub), ]
+```
+
+
+```{r}
+anova(fit1, fit2)
+```
+
+
+
+# Example Dataset mtcars
+```{r}
+data("mtcars")
+head(mtcars)
+```
+
+```{r}
+fit <- lm(mpg ~ wt, data = mtcars)
+fit
+```
+
+Model summary output: 
+
+```{r}
+summary(fit)
+```
+
+Obtaining the fitted values and residual values:
+
+```{r}
+res <- resid(fit)
+yhat <- fitted(fit)
+```
+
+## Quantile-Quantile Plot
+
+```{r}
+qqnorm(res)
+qqline(res, col = "steelblue", lwd = 2)
+```
+
+## Plotting fitted vs residuals
+
+```{r}
+plot(yhat, res)
+```
+
+
+```{r}
+scatter.smooth(yhat, res, lpars = list(col = "red"))
+```
+
+## Normality of Residuals
+
+```{r}
+hist(res, breaks = 20)
+```
+
+
+Obtain values from the summary output:
+
+```{r}
+( coef_table <- coef(summary(fit)) )
+stderr <- coef_table[2, 2]
+wt_coef <- coef(fit)[2]
+```
+
+Calculate the t-value:
+
+```{r}
+wt_coef / stderr
+```
+
+
+
