@@ -15,7 +15,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(haven)
-nhanes <- read_spss("data/NHANES_Lab4.sav")
+nhanes <- read_spss("NHANES_Lab4.sav")
+head(nhanes)
 ```
 
 ## Create our factor variable
@@ -31,9 +32,10 @@ table(nhanes$Education_f)
 
 ```{r}
 cc <- complete.cases(
-    nhanes[, c("BPXSY1", "Male", "Exactage", "Education")]
+    nhanes[, c("BPXSY1", "Male", "Exactage", "Education_f")]
 )
 nhanes_sub <- nhanes[cc, ]
+head(nhanes_sub)
 ```
 
 ### Model 1
@@ -52,22 +54,55 @@ summary(fit2)
 
 ### F-test between two models
 
+Here we get the overall p-value for the Education variable. We need to
+do this because Education has multiple categories.
+
 ```{r}
 anova(fit1, fit2)
 ```
 
 ### Likelihood ratio test
 
+We can also do the same with the likelihood ratio test function (`lrtest`) in
+the `lmtest` package.
+
 ```{r}
 library(lmtest)
 lrtest(fit1, fit2)
 ```
 
+## Sidenote: Calculate t-value
+
+Let's manually calculate the t-value for the `Male` variable.
+
+First let's look at the model summary:
+
+```{r}
+summary(fit1)
+```
+
+Now we obtain values from the summary output:
+
+```{r}
+( coef_table <- coef(summary(fit1)) )
+stderr <- coef_table[2, 2]
+male_coef <- coef_table[2, 1]
+```
+
+Calculate the t-value:
+
+```{r}
+male_coef / stderr
+```
+
 # Model Diagnostics
 
-## Constant variance check
+Now let's look at what model diagnostics we can run to ensure that our
+assumptions for a linear regression are met. 
 
-# Example Dataset mtcars
+## Constant variance check (homoscedasticity)
+
+### Example Dataset mtcars
 
 Now let's look at our usual dataset. We use this dataset because we can
 see an exaggerated effect in the plots of the residuals.
@@ -91,18 +126,11 @@ summary(fit)
 Obtaining the fitted values and residual values:
 
 ```{r}
-res <- resid(fit)
+res <- residuals(fit)
 yhat <- fitted(fit)
 ```
 
-## Quantile-Quantile Plot
-
-```{r}
-qqnorm(res)
-qqline(res, col = "steelblue", lwd = 2)
-```
-
-## Plotting fitted vs residuals
+### Plotting fitted vs residuals
 
 ```{r}
 plot(yhat, res)
@@ -110,11 +138,26 @@ plot(yhat, res)
 
 ### Scatter plot with smooth line
 
+We should expect a straight line more or less across our plot.
+
 ```{r}
 scatter.smooth(yhat, res, lpars = list(col = "red"))
 ```
 
 ## Normality of Residuals
+
+To check for normality we can plot our distribution values (normal distribution)
+versus our residuals in a Q-Q plot.
+
+### Quantile-Quantile Plot
+
+```{r}
+qqnorm(res)
+qqline(res, col = "steelblue", lwd = 2)
+```
+
+We can also visualize it using a histogram and overlaying it with a normal
+curve.
 
 ```{r}
 h <- hist(res, breaks = 20, col = "lightgray", xlab = "Residuals",
@@ -124,44 +167,55 @@ yfit <- dnorm(xfit, mean = mean(res), sd = sd(res))
 lines(xfit, yfit, col = "red", lwd = 2)
 ```
 
-## Calculate t-value
-
-Obtain values from the summary output:
-
-```{r}
-( coef_table <- coef(summary(fit)) )
-stderr <- coef_table[2, 2]
-wt_coef <- coef(fit)[2]
-```
-
-Calculate the t-value:
-
-```{r}
-wt_coef / stderr
-```
-
 ## Assessing linearity
 
 ```{r}
 with(nhanes,
-    scatter.smooth(Exactage, BPXSY1, lpars = list(col = "red", lwd = 3))
+    scatter.smooth(Exactage, BPXSY1, lpars = list(col = "red", lwd = 3), span = 0.1)
 )
 ```
+
+### With a scatterplot?
 
 A raw scatterplot won't help in general... but categorizing by age group
 and plotting the means would.
 
 ```{r}
 library(Hmisc)
-nhanes$age_groups10 <- cut2(nhanes$Exactage, g = 14)
-mean_groups <- tapply(nhanes$BPXSY1, nhanes$age_groups10, mean, na.rm = TRUE)
-plot(mean_groups)
+nhanes$age_groups14 <- cut2(nhanes$Exactage, g = 14)
+sbp_mean_groups <- tapply(nhanes$BPXSY1, nhanes$age_groups14, mean, na.rm = TRUE)
+plot(sbp_mean_groups)
 ```
 
-What about BMI and Age?
+### What about BMI and Age?
 
 ```{r}
-nhanes$age_groups10 <- cut2(nhanes$Exactage, g = 14)
-mean_groups <- tapply(nhanes$BMXBMI, nhanes$age_groups10, mean, na.rm = TRUE)
-plot(mean_groups)
+bmi_mean_groups <- tapply(nhanes$BMXBMI, nhanes$age_groups14, mean, na.rm = TRUE)
+plot(bmi_mean_groups)
 ```
+
+# Lab 6 (Analyze HELP RCT data as observational study)
+
+# Hypothesis
+
+```
+HOMELESS and drink amount are structurally related.
+```
+
+* Outcome: i1 (\#of drinks in past 30 days)
+* Study variable: HOMELESS
+* Confounders: AGE, FEMALE, RACEGRP
+
+## For the unadjusted analysis
+
+* Appropriately summarize the outcome and study variable
+* Use appropriate statistical method to assess the relationship between study
+variable and the outcome (ideally linear regression to compare with adjusted
+analysis)
+
+
+## For the adjusted analysis:
+
+* Use linear regression with study variable as independent variable and outcome
+as dependent variable, controlling the confounders.
+* Perform residual analysis for normality check and equal variance check.
