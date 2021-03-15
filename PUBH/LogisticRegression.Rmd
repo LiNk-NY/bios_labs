@@ -1,0 +1,247 @@
+---
+title: "Logistic Regression"
+author: "PUBH 614"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# North Carolina Birth Dataset
+
+Recall that the North Carolina State Center for Health Statistics makes
+publicly available birth and infant death data for all children born in the
+state of North Carolina. This comprehensive dataset for the births in 2001
+contains 120,300 records. The data in "NCBIRTH800mod.sav" which we have used
+previously represents a random sample of 800 of those births and selected
+variables.
+
+# Research Question 1
+
+Is low birth weight associated with mother’s smoking status during pregnancy
+after accounting for gestational age?
+
+# Loading the data
+
+```{r}
+library(haven)
+ncbirth <- read_spss("~/Downloads/NCBIRTH800mod.sav")
+```
+
+# Contingency Tables
+
+There are many ways to create crosstabs in R. One way is to use the `xtabs`
+function with formula notation. A formula is a convenient way of telling
+R how variables are related in a model.
+
+## Formula notation
+
+In R, the tilde `~` is what defines a formula. It is essentially a stand-in
+for the function that uses formulas to know how to use the associated
+variables.
+
+```{r}
+Y ~ X1 + X2
+```
+
+In the above formula, Y, X1, and X2 should be variables in a dataset. The
+dataset is usually identified by a `data =` argument
+
+### Example
+
+For crosstabs, we are using two X variables (if you will) to create a
+cross-tabulation (e.g., `~ X1 + X2`).
+
+```{r}
+xtabs(~ smoke + low, data = ncbirth)
+```
+
+## table
+
+You can also use the `table` function with two categorical variables / vectors.
+
+```{r}
+table(ncbirth$smoke, ncbirth$low)
+```
+
+## Row percentages
+
+Here we use the `prop.table` with the `margin = 1L` argument to get row
+proportions:
+
+```{r}
+tab1 <- xtabs(~ smoke + low, data = ncbirth)
+prop.table(tab1 , margin = 1L)
+```
+
+You may also want to round:
+
+```{r}
+round( prop.table(tab1 , margin = 1L), 2)
+```
+
+### Summary statistics
+
+% low birth weight infants for mothers who smoked during pregnancy: 13.2%
+% low birth weight infants for mothers who did not smoke during pregnancy: 8.0%
+
+## Chi-Square test of independence
+
+```{r}
+prop.test(tab1, correct = FALSE)
+```
+
+## Odds Ratio
+
+You can calculate this manually or using the examples we have seen
+previously:
+
+```{r}
+a <- tab1[1, 1]
+b <- tab1[1, 2]
+c <- tab1[2, 1]
+d <- tab1[2, 2]
+(a*d) / (b*c)
+```
+
+With the `epitools` package:
+
+```{r}
+library(epitools)
+oddsratio(tab1)$measure
+```
+
+### Interpretation
+
+The odds of low birth weight infants are 1.73 times higher among mothers who
+smoked during pregnancy as compared to those who did not smoke. This difference
+is not significant (p = 0.074).
+
+# Logistic Regression
+
+We use the `glm` function to run a logistic regression in R. Here our knowledge
+of formulas becomes useful:
+
+```{r}
+fit <- glm(low ~ smoke + weeks, data = ncbirth, family = "binomial")
+summary(fit)
+```
+
+We can create our summary table manually:
+
+```{r}
+ctable <- coefficients(summary(fit))
+coeffs <- exp(coef(fit))
+ints <- exp(confint(fit))
+round( cbind(ctable, ORs = coeffs, ints), 3)
+```
+
+Interpretation: The odds of low birth weight babies are 1.96 times higher among
+mothers who smoked during pregnancy as compared to those who did not smoke,
+after adjusting for gestational age.
+
+(CI for OR (.93, 4.11)), this association is not significant (p=.075).
+
+# Research Question 2
+
+Is low birth weight associated with mother’s ethnicity, after accounting for
+gestational age, mother’s age and smoking status during pregnancy?
+
+## factors
+
+When using the `haven` package to read in data, creating a factor from the data
+is quite easy:
+
+```{r}
+ethnmom_f <- as_factor(ncbirth$ethnmom)
+table(ethnmom_f)
+```
+
+To show you how to do this without a `haven` loaded dataset, we use the
+factor function. First we have a look at the levels using a table:
+
+```{r}
+table(ncbirth$ethnmom)
+```
+
+Then we use this information to recode. Usually, we get the value labels
+information from the study's codebook. We enter the labels as the input to
+the `labels =` argument as a character vector:
+
+```{r}
+ethnmom_f <- factor(ncbirth$ethnmom, levels = 1:4,
+    labels =  c("Non-Hispanic White", "Non-Hispanic Black", "Hispanic", "Other")
+)
+table(ethnmom_f)
+```
+
+Either way, we have a factor that R can use to run our model.
+
+## relevel
+
+To check the reference category in our factor, we use the `contrasts` function:
+
+```{r}
+contrasts(ethnmom_f)
+```
+
+To change the reference category in our factor, we use the `relevel` function:
+
+```{r}
+ethnmom_f <- relevel(ethnmom_f, ref = "Non-Hispanic White")
+```
+
+Note that our factor variable exists independent of the data. To insert the
+variable into our dataset, we use this notation:
+
+```{r}
+ncbirth$ethnmom_f <- ethnmom_f
+```
+
+On the right, we have our factor variable and on the left we are adding
+it to our existing dataset `ncbirth`.
+
+# Bivariable regression (unadjusted)
+
+```{r}
+fit2 <- glm(low ~ ethnmom_f, data = ncbirth, family = "binomial")
+summary(fit2)
+cbind(OR = exp(coef(fit2)), exp(confint(fit2)))
+```
+
+In the unadjusted (crude) analysis:
+* The odds of having low birth babies were higher for Non-Hispanic Black
+mothers, as compared to Non-Hispanic White mothers (reference category):
+OR=2.01, 95%CI (1.47, 3.45), p=0.11
+* There were no statistically significant differences in the probability of
+having low birth weight babies between Hispanic vs. Non-Hispanic White mothers
+(reference categories): OR=.92, 95%CI(.39, 2.32), p=.916.
+
+# Multivariable Regression (adjusted)
+
+You can breakdown the code below as in the first example or run it all
+in one go. Essentially, we are taking the summary table (from `summary(fit3)`)
+and adding Odds Ratio and confidence intervals columns.
+
+```{r, warning=FALSE}
+fit3 <- glm(low ~ ethnmom_f + smoke + weeks + mage,
+    data = ncbirth, family = "binomial")
+summary(fit3)
+round(cbind(
+    coefficients(summary(fit3)), OR = exp(coef(fit3)), exp(confint(fit3))
+), 3)
+```
+
+## Interpretation
+
+There are no statistically significant differences in the probability of having
+low birth weight babies between Non-Hispanic Black mothers vs. Non-Hispanic
+Black mothers (p=.210) and Hispanic vs. Non-Hispanic White mothers (p=.664),
+after adjusting for gestational age, mother’s age and smoking during pregnancy.
+
+## Note
+
+The confidence intervals in R do not exactly match those in SPSS but the
+results and inferences are largely the same.
+
