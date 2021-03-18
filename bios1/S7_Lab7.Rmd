@@ -17,6 +17,14 @@ library(faraway)
 data(penicillin)
 ```
 
+# Sidenote: Reshaping data (wide format)
+
+```{r}
+library(tidyr)
+pivot_wider(penicillin, names_from = "treat", values_from = "yield")
+```
+
+
 ## Penicillin yield based on blend and processes
 
 ```{r}
@@ -87,4 +95,40 @@ For example, we want to predict the `mpg` for a car that weighs 4000 lbs.
 ```{r}
 predict(fit, newdata = data.frame(wt = 4))
 ```
+
+```{r}
+coefs <- unname(coef(fit))
+intercept <- coefs[1]
+betawt <- coefs[2]
+intercept + (betawt*4)
+```
+
+## With multiple linear regresion
+
+```{r}
+library(haven)
+nhanes <- read_spss("data/NHANES_Lab4.sav")
+```
+
+### create our factor
+
+```{r}
+edu_levels <- attributes(nhanes$Education)$labels
+nhanes$Education_f <- factor(nhanes$Education,
+    levels = edu_levels, labels = names(edu_levels))
+table(nhanes$Education_f)
+```
+
+```{r}
+fit <- lm(BPXSY1 ~ Education_f + Male + Exactage, data = nhanes)
+```
+
+## Create a small data.frame with new data
+
+```{r}
+predict(fit,
+    data.frame(Exactage = 30, Education_f = "Graduated from College", Male = 0)
+)
+```
+
 
