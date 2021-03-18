@@ -1,0 +1,90 @@
+---
+title: "RCT / Review Session"
+author: "BIOS 620"
+date: "3/18/2021"
+output:
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Faraway Dataset
+
+```{r}
+library(faraway)
+data(penicillin)
+```
+
+## Penicillin yield based on blend and processes
+
+```{r}
+g <- lm(yield ~ treat+blend, data=penicillin)
+```
+
+```{r}
+summary(g)
+```
+
+Here we fit the models that we will use to compare to the full (leave the
+main effect variable out)
+
+```{r}
+fit0 <- lm(yield ~ treat, data = penicillin)
+fit1 <- lm(yield ~ blend, data = penicillin)
+```
+
+Is the main effect of blend significant? 
+
+```{r}
+anova(g, fit0)
+```
+
+Is the main effect of treatment significant? 
+
+```{r}
+anova(g, fit1)
+```
+
+## Exploratory Data Analysis and Diagnostic Plots
+
+```{r}
+par(mfrow=c(2,2))
+boxplot(yield~treat, data= penicillin, las=1)
+boxplot(yield~blend, data= penicillin, las=1)
+plot(predict(g), resid(g), xlab="Fitted", ylab="Residuals", las=1)
+abline(h=0, lty=2)
+qqnorm(resid(g), las=1)
+qqline(resid(g), col=2)
+```
+
+# Visualizing contrasts
+
+```{r}
+suppressPackageStartupMessages(library(PairViz))
+g2 <-  aov(yield ~ treat + blend, data= penicillin)
+tuk <- TukeyHSD(g2,conf.level = 0.95)
+par(mfrow=c(1,2))
+par(mar=c(5,6,4,2))
+plot(tuk, las=1, tcl = -.3)
+```
+
+# Review
+
+```{r}
+data(mtcars)
+```
+
+```{r}
+fit <- lm(mpg ~ wt, data = mtcars)
+```
+
+## Using the regression equation with new data
+
+For example, we want to predict the `mpg` for a car that weighs 4000 lbs.
+
+```{r}
+predict(fit, newdata = data.frame(wt = 4))
+```
+
