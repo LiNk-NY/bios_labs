@@ -1,0 +1,162 @@
+---
+title: "Model Diagnostics Answer Key"
+author: "BIOS 620"
+date: "3/18/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Lab 6 (Analyze HELP RCT data as observational study)
+
+# Hypothesis
+
+```
+HOMELESS and drink amount are structurally related.
+```
+
+* Outcome: i1 (\#of drinks in past 30 days)
+* Study variable: HOMELESS
+* Confounders: AGE, FEMALE, RACEGRP
+
+```{r}
+library(haven)
+rct <- read_spss("data/data_HELP.sav")
+head(rct)
+```
+
+## For the unadjusted analysis
+
+* Appropriately summarize the outcome and study variable
+
+### Outcome variable (number of drinks in the past 30 days)
+
+#### Visual EDA
+
+```{r}
+hist(rct$i1, breaks = 40)
+```
+
+```{r}
+boxplot(rct$i1)
+```
+
+#### Numerical summaries
+
+```{r}
+summary(rct$i1)
+```
+
+### Study variable (homelessness)
+
+#### Numerical summaries
+
+```{r}
+table(rct$homeless)
+prop.table( table(rct$homeless) )
+```
+
+### Both homelessness and no. of drinks
+
+Mean and medians by groups:
+
+```{r}
+tapply(rct$i1, rct$homeless, mean)
+tapply(rct$i1, rct$homeless, median)
+```
+
+Grouped boxplots:
+
+```{r}
+boxplot(i1 ~ homeless, data = rct)
+```
+
+## Unadjusted analysis
+
+* Use appropriate statistical method to assess the relationship between study
+variable and the outcome (ideally linear regression to compare with adjusted
+analysis)
+
+```{r}
+fit0 <- lm(i1 ~ homeless, data = rct)
+summary(fit0)
+```
+
+## For the adjusted analysis:
+
+* Use linear regression with study variable as independent variable and outcome
+as dependent variable, controlling the confounders.
+
+```{r}
+fit1 <- lm(i1 ~ homeless + age + female + racegrp, data = rct)
+summary(fit1)
+```
+
+* Perform residual analysis for normality check and equal variance check.
+
+### Normality check
+
+```{r}
+qqnorm(residuals(fit1))
+qqline(residuals(fit1), col = "red")
+```
+
+It does not look normal...
+
+### Check for homoscedasticity
+
+```{r}
+plot(fitted(fit1), residuals(fit1))
+abline(h = 0, lty = 2)
+```
+
+There is an obvious pattern.
+
+# Transforming the outcome
+
+We use a statistician's trick of adding 1 to 0 values to be able to get
+a sensible log transformation and avoid infinite values (`-Inf`):
+
+```{r}
+rct$logi1 <- log(rct$i1 + 1)
+```
+
+## Numeric summary
+
+```{r}
+summary(rct$logi1)
+```
+
+The mean and the median are much closer now than previously.
+
+Now, we refit the model with our new variable:
+
+```{r}
+fit2 <- lm(logi1 ~ homeless + age + female + racegrp, data = rct)
+summary(fit2)
+```
+
+## Checking assumptions again
+
+### Normality check
+
+```{r}
+par(mfrow = c(1, 2))
+hist(residuals(fit2), breaks = 40)
+qqnorm(residuals(fit2))
+qqline(residuals(fit2), col = "red")
+```
+
+It looks better but still not quite following the line.
+
+### Check for homoscedasticity
+
+```{r}
+plot(fitted(fit2), residuals(fit2))
+abline(h = 0, lty = 2)
+```
+
+That's slightly better (see the adj. R-square) though we should consider
+modeling the data differently.
