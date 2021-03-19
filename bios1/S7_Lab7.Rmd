@@ -15,6 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(faraway)
 data(penicillin)
+head(penicillin)
 ```
 
 # Sidenote: Reshaping data (wide format)
@@ -86,6 +87,7 @@ data(mtcars)
 
 ```{r}
 fit <- lm(mpg ~ wt, data = mtcars)
+fit <- lm(mpg ~ 1 + wt, data = mtcars)
 ```
 
 ## Using the regression equation with new data
@@ -117,10 +119,21 @@ edu_levels <- attributes(nhanes$Education)$labels
 nhanes$Education_f <- factor(nhanes$Education,
     levels = edu_levels, labels = names(edu_levels))
 table(nhanes$Education_f)
+
+# as_factor(nhanes$Education)
+```
+
+### Inspect our reference category...
+
+`"Not graduated from HS"` is the reference:
+
+```{r}
+contrasts(nhanes$Education_f)
 ```
 
 ```{r}
 fit <- lm(BPXSY1 ~ Education_f + Male + Exactage, data = nhanes)
+summary(fit)
 ```
 
 ## Create a small data.frame with new data
@@ -130,5 +143,77 @@ predict(fit,
     data.frame(Exactage = 30, Education_f = "Graduated from College", Male = 0)
 )
 ```
+
+### Manual calculation using the regression equation
+
+```{r}
+(model_coefs <- coefficients(fit)[-c(2, 4)])
+# age * 30 + intercept + EduCollege * 1
+(model_coefs[3]*30) + sum(model_coefs[1:2])
+```
+
+Alternatively, we can multiply by a vector of values that correspond to the
+Xs in our new data. The zeros here mean that the Beta for that category does not
+correspond to our new data (e.g., `"Graduated from HS"` $\beta$ * 0).
+
+```{r}
+coefficients(fit)
+sum(coefficients(fit) * c(1, 0, 1, 0, 30))
+```
+
+Note. We just used a vectorized operation!
+
+### Reference group changes
+
+The aim here is to compare beta values when reference groups change. 
+The differences in magnitudes across the groups should be the same!
+
+First, we two models where the only difference is the reference group
+for education:
+
+```{r}
+contrasts(nhanes$Education_f)
+nhanes$Education_f <- relevel(nhanes$Education_f, ref = "Not graduated from HS")
+fit0 <- lm(BPXSY1 ~ Education_f + Male + Exactage, data = nhanes)
+
+contrasts(nhanes$Education_f)
+nhanes$Education_f <- relevel(nhanes$Education_f, ref = "Graduated from College")
+fit1 <- lm(BPXSY1 ~ Education_f + Male + Exactage, data = nhanes)
+```
+
+We can have a look at the summary of both fit objects:
+
+```{r}
+# 'Not graduated from HS' is the reference
+summary(fit0)
+# 'Graduated from College' is the reference
+summary(fit1)
+```
+
+To make a more direct comparison, we can construct some nice output for
+both sets of coefficients for the Education variable and also include the
+reference category:
+
+```{r}
+f0coeff <- c(`Not graduated from HS` = 0, coef(fit0)[2:3])
+names(f0coeff) <- gsub("Education_f", "", names(f0coeff))
+f0 <- f0coeff[order(names(f0coeff))]
+```
+
+```{r}
+f1coeff <- c(`Graduated from College` = 0, coef(fit1)[2:3])
+names(f1coeff) <- gsub("Education_f", "", names(f1coeff))
+f1 <- f1coeff[order(names(f1coeff))]
+```
+
+Let's see both now:
+
+```{r}
+f0
+f1
+```
+
+The coefficients are the same whether you add or subtract 5 depending on
+the reference category that changes. 
 
 
