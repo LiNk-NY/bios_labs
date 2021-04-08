@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(haven)
-help_rct <- read_spss("../data/data_HELP.sav")
+help_rct <- read_spss("data/data_HELP.sav")
 ```
 
 ```{r}
@@ -25,8 +25,8 @@ with(help_rct, table(treat, linkstatus))
 
 
 ```{r}
-fit <- glm( linkstatus ~ 1 + treat, family=binomial, data=help_rct)
-fit <- glm( linkstatus ~ 1 + treat, family="binomial", data=help_rct)
+fit <- glm(linkstatus ~ 1 + treat, family=binomial, data=help_rct)
+fit <- glm(linkstatus ~ 1 + treat, family="binomial", data=help_rct)
 ```
 
 ## Beta Estimates
@@ -53,13 +53,34 @@ titanic <- titanic_train
 
 ```{r}
 table(titanic$Sex)
-table(titanic$Sex, titanic$Survived )
+table(titanic$Sex, titanic$Survived)
 ```
 
 ```{r}
 fit <- glm(Survived ~ 1 + Sex, family=binomial, data=titanic)
 summary(fit)
 ```
+
+```{r}
+female <- factor(titanic$Sex, levels = c("male", "female"))
+contrasts(female)
+
+titanic$female <- relevel(female, ref = "male")
+
+fit1 <- glm(Survived ~ female, family = binomial, data = titanic)
+summary(fit1)
+exp(coef(fit1))
+```
+
+```{r}
+# ifelse(titanic$Sex == "female", 1, 0)
+titanic$fem01 <- as.numeric(titanic$Sex == "female")
+fit1 <- glm(Survived ~ fem01, family = binomial, data = titanic)
+summary(fit1)
+exp(coef(fit1))
+```
+
+
 
 ## Odds Ratio
 
@@ -70,7 +91,7 @@ exp(coef(fit))
 ## Confidence Intervals
 
 ```{r}
-exp(confint(fit))
+exp(confint(fit1))
 ```
 
 ## Manual calculation
@@ -78,6 +99,8 @@ exp(confint(fit))
 \[
  \hat{p}_{i} = \frac{\exp (\hat{\beta}_{0} + \hat{\beta}_{1} x_{i})}{1 + \exp (\hat{\beta}_{0} + \hat{\beta}_{1} x_{i})}
 \]
+
+What is the probability of surviving as female?
 
 ```{r}
 exp(coef(fit)[1]) / ( 1 + exp(coef(fit)[1]) )
@@ -89,4 +112,23 @@ exp(coef(fit)[1]) / ( 1 + exp(coef(fit)[1]) )
 predict(fit, newdata = data.frame(Sex = "female"), type = "response")
 ```
 
+## Side note (Mosaic plots)
+
+```{r}
+data("Titanic")
+library(vcd)
+mosaic(Titanic)
+```
+
+
+# Exercise
+
+Calculate the probability of o-ring failure with the Challenger data at a
+temperature of **31** degrees Fahrenheit. 
+
+```{r}
+library(readxl)
+challenger <- read_excel("data/prechallenger.xls")
+challenger
+```
 
