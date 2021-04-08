@@ -1,0 +1,92 @@
+---
+title: "Logistic Regression"
+author: "BIOS 620"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Help RCT
+
+```{r}
+library(haven)
+help_rct <- read_spss("../data/data_HELP.sav")
+```
+
+```{r}
+with(help_rct, table(treat, linkstatus))
+```
+
+## Fit the logistic regression model
+
+
+```{r}
+fit <- glm( linkstatus ~ 1 + treat, family=binomial, data=help_rct)
+fit <- glm( linkstatus ~ 1 + treat, family="binomial", data=help_rct)
+```
+
+## Beta Estimates
+
+```{r}
+summary(fit)
+```
+
+## Odds Ratio
+
+```{r}
+exp(fit$coefficient[2])
+```
+
+# Titanic Example
+
+What is the probability of surviving the Titanic based on sex?
+
+```{r}
+library(titanic)
+data(titanic_train)
+titanic <- titanic_train
+```
+
+```{r}
+table(titanic$Sex)
+table(titanic$Sex, titanic$Survived )
+```
+
+```{r}
+fit <- glm(Survived ~ 1 + Sex, family=binomial, data=titanic)
+summary(fit)
+```
+
+## Odds Ratio
+
+```{r}
+exp(coef(fit))
+```
+
+## Confidence Intervals
+
+```{r}
+exp(confint(fit))
+```
+
+## Manual calculation
+
+\[
+ \hat{p}_{i} = \frac{\exp (\hat{\beta}_{0} + \hat{\beta}_{1} x_{i})}{1 + \exp (\hat{\beta}_{0} + \hat{\beta}_{1} x_{i})}
+\]
+
+```{r}
+exp(coef(fit)[1]) / ( 1 + exp(coef(fit)[1]) )
+```
+
+## Predict function
+
+```{r}
+predict(fit, newdata = data.frame(Sex = "female"), type = "response")
+```
+
+
