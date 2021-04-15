@@ -1,0 +1,187 @@
+---
+title: "Interaction"
+author: "BIOS 620"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Setup NHANES dataset
+
+```{r}
+library(haven)
+library(stargazer)
+nhanes <- read_spss("data/NHANES_RN1.sav")
+```
+
+# Linear Regression
+## Example 1 - SBP on Age & Gender (NHANES 2005-2006, age 20 - 84)
+
+```{r}
+fit1 <- lm(BPXSY1 ~ 1 + Exactage + Male, data=nhanes)
+fit2 <- lm(BPXSY1 ~ 1 + Exactage + Male + Exactage:Male, data=nhanes)
+# equivalenly
+fit2 <- lm(BPXSY1 ~ 1 + Exactage + Male + Exactage * Male, data=nhanes)
+```
+
+## Visual inspection of the relationship between X and Y
+
+```{r}
+with(nhanes, plot(BPXSY1, Exactage))
+```
+
+```{r}
+table(nhanes$Male)
+```
+
+```{r}
+summary(fit1)
+summary(fit2)
+stargazer(fit1, fit2,
+    title="Without and with interaction for linear regression",
+    df=FALSE, intercept.bottom=FALSE,
+    type="text", omit.stat=c("all"),
+    style="default", header=FALSE
+)
+```
+
+## Using complete.cases
+
+```{r}
+complete2 <- complete.cases(nhanes[, c("BPXSY1", "Exactage", "Male")])
+nhanes2 <- nhanes[complete2, ]
+```
+
+## Visualizing results
+
+```{r}
+plot( nhanes2$Exactage, nhanes2$BPXSY1, xlab="Age", ylab="SBP", color='gray85', pch=".", las=1)
+fit.male   <- lm(BPXSY1~1 + Exactage , data = subset(nhanes2, Male==1))
+fit.female <- lm(BPXSY1~1 + Exactage,  data = subset(nhanes2, Male==0))
+abline(fit.female, col = "red")
+abline(fit.male, col = "blue")
+legend("topleft", bty='n', c("Male", "Female"), lty=c(1,1), col=c("blue", "red"))
+```
+
+# Example 2: Hypertension on Gender and Education
+
+```{r}
+nhanes$Hypertension <- as.numeric(nhanes$BPXSY1 > 140)
+```
+
+## Using complete.cases to subset
+
+```{r}
+complete3 <- complete.cases(nhanes[, c("Hypertension", "Education", "Male")])
+nhanes3 <- nhanes[complete3, ]
+```
+
+### create our factor
+
+```{r}
+nhanes3$Edu <- as_factor(nhanes3$Education)
+```
+
+## Testing for the interaction
+
+```{r}
+fit3 <- glm(Hypertension ~ 1 + Male + Edu, family='binomial', data=nhanes3)
+
+fit4 <- glm(Hypertension ~ 1 + Male + Edu + Male:Edu, family='binomial', data=nhanes3)
+```
+
+## Results
+
+```{r}
+stargazer(fit3, fit4,
+    title="Without and with interaction for logistic regression",
+    df=FALSE, intercept.bottom=FALSE,
+    type="text", omit.stat=c("all"),
+    style="default", header=FALSE
+)
+```
+
+## Analysis of Deviance (Likelihood Ratio Test)
+
+```{r}
+anova(fit3, fit4, test='Chisq')
+```
+
+```{r}
+library(lmtest)
+lrtest(fit3, fit4)
+```
+
+## Stratified analysis
+
+```{r}
+dat.noHS <- subset(nhanes3, Education == 1)
+dat.HS   <- subset(nhanes3, Education == 2)
+dat.College <- subset(nhanes3, Education == 3)
+```
+
+### Model fit
+
+```{r}
+fit5a <- glm(Hypertension~1 + Male,  family='binomial', data=dat.noHS)
+fit5b <- glm(Hypertension~1 + Male,  family='binomial', data=dat.HS)
+fit5c <- glm(Hypertension~1 + Male,  family='binomial', data=dat.College)
+```
+
+```{r}
+stargazer(fit5a, fit5b, fit5c,
+    title="Stratified analysis between gender and hypertension", df=FALSE,intercept.bottom=FALSE,
+    type="text", omit.stat=c("all"),
+    style="default", header=FALSE
+)
+```
+
+### Addressing repetitive code
+
+You can use a list representation and iterate over the list.
+See also the `purrr` package in the `tidyverse`.
+
+```{r}
+nhaneslist <- split(nhanes3, nhanes3$Education)
+res <- lapply(nhaneslist, function(model) {
+    glm(Hypertension ~ 1 + Male, family = "binomial", data = model)
+})
+```
+
+### Same results
+
+```{r}
+stargazer(res,
+    title="Stratified analysis between gender and hypertension", df=FALSE,intercept.bottom=FALSE,
+    type="text", omit.stat=c("all"),
+    style="default", header=FALSE
+)
+```
+
+# Common reference group
+
+```{r}
+contrasts(nhanes3$Edu)
+contrasts(factor(nhanes3$Male))
+```
+
+## Female and Not Graduate from HS are the common reference group
+
+```{r}
+nhanes3$SexEdu <- with(nhanes3, interaction(Male, Edu))
+```
+
+```{r}
+fit0 <- glm(Hypertension ~ SexEdu, family = "binomial", data = nhanes3)
+summary(fit0)
+```
+
+## Additive vs Multiplicative interaction?
+
+As a good epidemiologist, you should be reporting both.
+This is an important EPI topic.
+
