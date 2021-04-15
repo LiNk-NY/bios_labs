@@ -14,7 +14,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(haven)
-library(stargazer)
 nhanes <- read_spss("data/NHANES_RN1.sav")
 ```
 
@@ -31,7 +30,7 @@ fit2 <- lm(BPXSY1 ~ 1 + Exactage + Male + Exactage * Male, data=nhanes)
 ## Visual inspection of the relationship between X and Y
 
 ```{r}
-with(nhanes, plot(BPXSY1, Exactage))
+with(nhanes, plot(Exactage, BPXSY1))
 ```
 
 ```{r}
@@ -41,6 +40,7 @@ table(nhanes$Male)
 ```{r}
 summary(fit1)
 summary(fit2)
+library(stargazer)
 stargazer(fit1, fit2,
     title="Without and with interaction for linear regression",
     df=FALSE, intercept.bottom=FALSE,
@@ -56,15 +56,17 @@ complete2 <- complete.cases(nhanes[, c("BPXSY1", "Exactage", "Male")])
 nhanes2 <- nhanes[complete2, ]
 ```
 
-## Visualizing results
+## Visualizing the interaction 
 
 ```{r}
-plot( nhanes2$Exactage, nhanes2$BPXSY1, xlab="Age", ylab="SBP", color='gray85', pch=".", las=1)
+with(nhanes2,
+    plot(Exactage, BPXSY1, xlab="Age", ylab="SBP", las=1)
+)
 fit.male   <- lm(BPXSY1~1 + Exactage , data = subset(nhanes2, Male==1))
 fit.female <- lm(BPXSY1~1 + Exactage,  data = subset(nhanes2, Male==0))
-abline(fit.female, col = "red")
-abline(fit.male, col = "blue")
-legend("topleft", bty='n', c("Male", "Female"), lty=c(1,1), col=c("blue", "red"))
+abline(fit.female, col = "red", lwd = 2)
+abline(fit.male, col = "blue", lwd = 2)
+legend("topleft", bty="n", c("Male", "Female"), lty=c(1,1), col=c("blue", "red"))
 ```
 
 # Example 2: Hypertension on Gender and Education
