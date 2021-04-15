@@ -25,6 +25,7 @@ fit1 <- lm(BPXSY1 ~ 1 + Exactage + Male, data=nhanes)
 fit2 <- lm(BPXSY1 ~ 1 + Exactage + Male + Exactage:Male, data=nhanes)
 # equivalenly
 fit2 <- lm(BPXSY1 ~ 1 + Exactage + Male + Exactage * Male, data=nhanes)
+fit3 <- lm(BPXSY1 ~ 1 + Exactage * Male, data=nhanes)
 ```
 
 ## Visual inspection of the relationship between X and Y
@@ -62,11 +63,11 @@ nhanes2 <- nhanes[complete2, ]
 with(nhanes2,
     plot(Exactage, BPXSY1, xlab="Age", ylab="SBP", las=1)
 )
-fit.male   <- lm(BPXSY1~1 + Exactage , data = subset(nhanes2, Male==1))
-fit.female <- lm(BPXSY1~1 + Exactage,  data = subset(nhanes2, Male==0))
-abline(fit.female, col = "red", lwd = 2)
-abline(fit.male, col = "blue", lwd = 2)
-legend("topleft", bty="n", c("Male", "Female"), lty=c(1,1), col=c("blue", "red"))
+fit.male   <- lm(BPXSY1 ~ 1 + Exactage , data = subset(nhanes2, Male==1))
+fit.female <- lm(BPXSY1 ~ 1 + Exactage,  data = subset(nhanes2, Male==0))
+abline(fit.female, col = "blue", lwd = 2)
+abline(fit.male, col = "red", lwd = 2)
+legend("topleft", bty="n", c("Male", "Female"), lty=c(1,1), col=c("red", "blue"))
 ```
 
 # Example 2: Hypertension on Gender and Education
@@ -80,6 +81,7 @@ nhanes$Hypertension <- as.numeric(nhanes$BPXSY1 > 140)
 ```{r}
 complete3 <- complete.cases(nhanes[, c("Hypertension", "Education", "Male")])
 nhanes3 <- nhanes[complete3, ]
+dim(nhanes3)
 ```
 
 ### create our factor
