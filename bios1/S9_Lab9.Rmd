@@ -74,6 +74,7 @@ legend("topleft", bty="n", c("Male", "Female"), lty=c(1,1), col=c("red", "blue")
 
 ```{r}
 nhanes$Hypertension <- as.numeric(nhanes$BPXSY1 > 140)
+table(nhanes$Hypertension)
 ```
 
 ## Using complete.cases to subset
@@ -184,9 +185,29 @@ fit0 <- glm(Hypertension ~ SexEdu, family = "binomial", data = nhanes3)
 summary(fit0)
 ```
 
+## Table
+
+|             | NoHS | HS | College | NoHS | HS | College |
+|-------------|------|:--:|---------|------|:--:|---------|
+| Female      |      |    |         |      |    |         |
+| Male        |      |    |         |      |    |         |
+| Male-Female |      |    |         |      |    |         |
+
 ## Additive vs Multiplicative interaction?
 
 As a good epidemiologist, you should be reporting both.
 This is an important EPI topic.
 
 https://catalyst.harvard.edu/docs/biostatsseminar/VanderWeele2012.pdf
+
+
+# Exercise (fill in the table)
+
+Note. `_i` means the estimate from the interaction
+
+|                 | Alcohol | Cocaine | Heroin | Alcohol_i | Cocaine_i | Heroin_i |
+|-----------------|---------|---------|--------|-----------|-----------|----------|
+| Control         |         |         |        |           |           |          |
+| Treated         |         |         |        |           |           |          |
+| Treated-Control |         |         |        |           |           |          |
+
