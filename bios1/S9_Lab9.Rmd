@@ -185,3 +185,4 @@ summary(fit0)
 As a good epidemiologist, you should be reporting both.
 This is an important EPI topic.
 
+https://catalyst.harvard.edu/docs/biostatsseminar/VanderWeele2012.pdf
