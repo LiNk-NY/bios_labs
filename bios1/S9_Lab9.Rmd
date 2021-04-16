@@ -25,7 +25,7 @@ fit1 <- lm(BPXSY1 ~ 1 + Exactage + Male, data=nhanes)
 fit2 <- lm(BPXSY1 ~ 1 + Exactage + Male + Exactage:Male, data=nhanes)
 # equivalenly
 fit2 <- lm(BPXSY1 ~ 1 + Exactage + Male + Exactage * Male, data=nhanes)
-fit3 <- lm(BPXSY1 ~ 1 + Exactage * Male, data=nhanes)
+fit2 <- lm(BPXSY1 ~ 1 + Exactage * Male, data=nhanes)
 ```
 
 ## Visual inspection of the relationship between X and Y
@@ -57,7 +57,7 @@ complete2 <- complete.cases(nhanes[, c("BPXSY1", "Exactage", "Male")])
 nhanes2 <- nhanes[complete2, ]
 ```
 
-## Visualizing the interaction 
+## Visualizing the interaction
 
 ```{r}
 with(nhanes2,
@@ -167,31 +167,112 @@ stargazer(res,
 )
 ```
 
-# Common reference group
+# Estimates Table
+
+|             | NoHS | HS | College |
+|-------------|------|:--:|---------|
+| Female      |      |    |         |
+| Male        |      |    |         |
+| Male-Female |      |    |         |
+
+### Column 1
+
+Male & Not graduated from HS WRT to Female & Not graduated from HS
+
+```{r}
+names(coef(fit3))
+# we subtract effect of males minus females
+( fNoHS <- unname(sum(coef(fit3) * c(1, 0, 0, 0)) - coef(fit3)[1]) )
+( mNoHS <- unname(sum(coef(fit3) * c(1, 1, 0, 0)) - coef(fit3)[1]) )
+```
+
+### Column 2
+
+Male & Graduated from HS WRT Female & Not graduated from HS
+
+```{r}
+names(coef(fit3))
+# we subtract effect of males minus females
+( fHS <- unname(sum(coef(fit3) * c(1, 0, 1, 0)) - coef(fit3)[1]) )
+( mHS <- unname(sum(coef(fit3) * c(1, 1, 1, 0)) - coef(fit3)[1]) )
+```
+
+### Column 3
+
+Male & Graduated from College WRT Female & Not graduated from HS
+
+```{r}
+names(coef(fit3))
+# we subtract effect of males minus females
+( fC <- unname(sum(coef(fit3) * c(1, 0, 0, 1)) - coef(fit3)[1]) )
+( mC <- unname(sum(coef(fit3) * c(1, 1, 0, 1)) - coef(fit3)[1]) )
+```
+
+## The table
+
+```{r}
+no_int <- matrix(
+    c(fNoHS, mNoHS, fHS, mHS, fC, mC),
+    nrow = 2, dimnames = list(levels(nhanes3$Sex), levels(nhanes3$Edu))
+)
+`Male-Female` <- no_int[2, ] - no_int[1, ]
+no_int <- rbind(no_int, `Male-Female`)
+no_int
+```
+
+## with Interaction
+
+### Creating a common reference group
+
+First, we check the reference categories:
 
 ```{r}
 contrasts(nhanes3$Edu)
 contrasts(factor(nhanes3$Male))
 ```
 
-## Female and Not Graduate from HS are the common reference group
+```{r}
+nhanes3$Sex <- factor(nhanes3$Male, levels = 0:1, labels = c("Female", "Male"))
+contrasts(nhanes3$Sex)
+table(nhanes3$Sex)
+table(nhanes3$Male)
+```
+
+### "Female and Not Graduate from HS" is the common reference group
 
 ```{r}
-nhanes3$SexEdu <- with(nhanes3, interaction(Male, Edu))
+nhanes3$SexEdu <- with(nhanes3, interaction(Sex, Edu))
+contrasts(nhanes3$SexEdu)
 ```
 
 ```{r}
-fit0 <- glm(Hypertension ~ SexEdu, family = "binomial", data = nhanes3)
-summary(fit0)
+fit4 <- glm(Hypertension ~ SexEdu, family = "binomial", data = nhanes3)
+summary(fit4)
 ```
 
-## Table
+### Columns 4, 5, and 6
 
-|             | NoHS | HS | College | NoHS | HS | College |
-|-------------|------|:--:|---------|------|:--:|---------|
-| Female      |      |    |         |      |    |         |
-| Male        |      |    |         |      |    |         |
-| Male-Female |      |    |         |      |    |         |
+|             | NoHS | HS | College |
+|-------------|------|:--:|---------|
+| Female      |      |    |         |
+| Male        |      |    |         |
+| Male-Female |      |    |         |
+
+```{r}
+coefs <- coef(fit4)
+coefs[1] <- 0
+with_int <- matrix(coefs, nrow = 2,
+    dimnames = list(levels(nhanes3$Sex), levels(nhanes3$Edu)))
+`Male-Female` <- with_int[2, ] - with_int[1, ]
+with_int <- rbind(with_int, `Male-Female`)
+with_int
+```
+
+# Final Table
+
+```{r}
+round(cbind(no_int, with_int),3)
+```
 
 ## Additive vs Multiplicative interaction?
 
