@@ -181,7 +181,6 @@ Male & Not graduated from HS WRT to Female & Not graduated from HS
 
 ```{r}
 names(coef(fit3))
-# we subtract effect of males minus females
 ( fNoHS <- unname(sum(coef(fit3) * c(1, 0, 0, 0)) - coef(fit3)[1]) )
 ( mNoHS <- unname(sum(coef(fit3) * c(1, 1, 0, 0)) - coef(fit3)[1]) )
 ```
@@ -192,7 +191,6 @@ Male & Graduated from HS WRT Female & Not graduated from HS
 
 ```{r}
 names(coef(fit3))
-# we subtract effect of males minus females
 ( fHS <- unname(sum(coef(fit3) * c(1, 0, 1, 0)) - coef(fit3)[1]) )
 ( mHS <- unname(sum(coef(fit3) * c(1, 1, 1, 0)) - coef(fit3)[1]) )
 ```
@@ -203,7 +201,6 @@ Male & Graduated from College WRT Female & Not graduated from HS
 
 ```{r}
 names(coef(fit3))
-# we subtract effect of males minus females
 ( fC <- unname(sum(coef(fit3) * c(1, 0, 0, 1)) - coef(fit3)[1]) )
 ( mC <- unname(sum(coef(fit3) * c(1, 1, 0, 1)) - coef(fit3)[1]) )
 ```
@@ -211,10 +208,19 @@ names(coef(fit3))
 ## The table
 
 ```{r}
+nhanes3$Sex <- factor(nhanes3$Male, levels = 0:1, labels = c("Female", "Male"))
+contrasts(nhanes3$Sex)
+table(nhanes3$Sex)
+table(nhanes3$Male)
+```
+
+
+```{r}
 no_int <- matrix(
     c(fNoHS, mNoHS, fHS, mHS, fC, mC),
     nrow = 2, dimnames = list(levels(nhanes3$Sex), levels(nhanes3$Edu))
 )
+# we subtract effect of males minus females
 `Male-Female` <- no_int[2, ] - no_int[1, ]
 no_int <- rbind(no_int, `Male-Female`)
 no_int
@@ -229,13 +235,6 @@ First, we check the reference categories:
 ```{r}
 contrasts(nhanes3$Edu)
 contrasts(factor(nhanes3$Male))
-```
-
-```{r}
-nhanes3$Sex <- factor(nhanes3$Male, levels = 0:1, labels = c("Female", "Male"))
-contrasts(nhanes3$Sex)
-table(nhanes3$Sex)
-table(nhanes3$Male)
 ```
 
 ### "Female and Not Graduate from HS" is the common reference group
@@ -263,6 +262,7 @@ coefs <- coef(fit4)
 coefs[1] <- 0
 with_int <- matrix(coefs, nrow = 2,
     dimnames = list(levels(nhanes3$Sex), levels(nhanes3$Edu)))
+# we subtract effect of males minus females
 `Male-Female` <- with_int[2, ] - with_int[1, ]
 with_int <- rbind(with_int, `Male-Female`)
 with_int
