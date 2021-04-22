@@ -10,47 +10,119 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Setup Admissions Data
+# Setup: ISLR package
 
-```{r,message=FALSE}
-library(haven)
-admit <- read_spss("data/admit.sav")
-```
-
-# Specifying the Model
+Intro to Statistical Learning
 
 ```{r}
-fit <- glm(admit~1 + gre + gpa + rank,  family=binomial, data=admit)
-p.admit <- predict(fit, type="response")
-hist(p.admit)
+library(ISLR)
+data(Default, package = "ISLR")
+head(Default)
 ```
 
+## Default data documentation
+
+```{r,eval=FALSE}
+?Default
+```
+
+## Specify the Model
+
 ```{r}
-length(p.admit)
-length(unique(p.admit))
-coff <- unique(p.admit)
-tp <- rep(NA, length(coff))
-fp <- rep(NA, length(coff))
+fit <- glm(default ~ 1 + student + balance + income,
+    family="binomial", data=Default)
+summary(fit)
+```
 
-for (i in seq_along(coff))
-{
-  adhv.y <- as.numeric(p.admit >= coff[i])
-  xtab <- table(adhv.y, admit$admit)
+### Histogram of predicted probabilities
 
-  tp[i] <- xtab["1", "1"] / sum(xtab[, "1"])
-  fp[i] <- xtab["1", "0"] / sum(xtab[, "0"])
+```{r}
+p.default <- predict(fit, type = "response")
+hist(p.default)
+```
+
+### Calculating sensitivity and specificity
+
+* Predicted by Truth
+
+|                              | Condition positive | Condition negative |
+|------------------------------|--------------------|--------------------|
+| Predicted condition positive | True Positive      | False Positive     |
+| Predicted condition negative | False Negative     | True Negative      |
+
+* TP = True Positive
+* FN = False Negative
+
+* specificity = TN / ( TN + FP )
+* sensitivity  = TP / ( TP + FN )
+
+```{r}
+threshold.seq <- seq(0, 1, by = 0.01)
+sens <- spec <- rep(NA, length(threshold.seq))
+
+for (i in seq_along(threshold.seq)) {
+
+  decision <- as.numeric(prob > threshold.seq[i])
+  myt <- table(decision, Default$default)
+  a = sum(decision==0 & Default$default == "No")
+  d = sum(decision==1 & Default$default == "Yes")
+
+  spec[i] <- a / sum(myt[, "No"]) # (myt[1,1]+myt[2,1])
+  sens[i] <- d / sum(myt[, "Yes"]) # (myt[1,2]+myt[2,2])
+
 }
 
-plot(c(0, 1), c(0, 1), type = "n", axes = F, xlab="", ylab = "")
+spec.sens <- data.frame(specificity = spec, sensitivity = sens)
+```
+
+## ROC curve
+
+```{r}
+plot(1 - sepc.sens[, "specificity"], sepc.sens[, "sensitivity"],
+    xlim = c(0,1), ylim = c(0,1), lwd = 2,
+    type= "l", col = "red", main = "ROC curve",
+    xlab = "1 - Specificity", ylab = "Sensitivity")
+abline(a=0, b=1)
+```
+
+# Alternative calculations
+
+* Using lowess smoothing (local averaging)
+* Using True Positive Rate and False Positive Rate
+
+```{r}
+coff <- unique(p.default)
+tp <- fp <- rep(NA, length(coff))
+
+for (i in seq_along(coff)) {
+  def.y <- as.numeric(p.default >= coff[i])
+  xtab <- table(def.y, Default$default)
+
+  tp[i] <- xtab["1", "Yes"] / sum(xtab[, "Yes"])
+  fp[i] <- xtab["1", "No"] / sum(xtab[, "No"])
+}
+
+plot(c(0, 1), c(0, 1), type = "n", axes = FALSE, xlab="", ylab = "")
 axis(1, pos = 0.0)
 axis(2, pos = 0.0, las = 1)
 segments(x0 = c(0, 0, 1), x1 = c(1, 1, 1), y0 = c(0, 1, 0), y1 = c(1, 1, 1))
 lowe <- lowess(x = fp, y = tp, f = 1/10)
-len <- length(lowe$x)
 lines(x = lowe$x, y = lowe$y, lwd = 2, col="red")
-h <- lowe$x[-1] - lowe$x[1:(len - 1)]   # heights of indiv parallelgrams
+```
+
+## Calculating the Area Under the Curve (AUC)
+
+We can compare models by their AUC. It is a measure of how well the model
+performs in predictive ability.
+
+```{r}
+len <- length(lowe$x)
+h <- lowe$x[-1] - lowe$x[-len]   # heights of individual parallelograms
+## OR
+## h <- diff(lowe$x)
+
 ub <- lowe$y[-1]
 lb <- lowe$y[-len]
-# lb <- lowe$y[1:(len - 1)]
-auc1 <- sum( ( (ub + lb) * h )/2 )
+auc <- sum( ( (ub + lb) * h )/2 )
+auc
 ```
