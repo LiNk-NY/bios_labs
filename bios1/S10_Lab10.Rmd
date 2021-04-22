@@ -130,3 +130,20 @@ lb <- lowe$y[-len]
 auc <- sum( ( (ub + lb) * h )/2 )
 auc
 ```
+
+# Exercise
+
+* Use the `admit.sav` data, fit a prediction model with "admit" as the response
+variable to predict being admitted ("admit" = 1), using `gre`, `gpa`, `rank`,
+and the interaction of `gre` and `gpa` as predictors.
+
+* Obtain the predicted probabilities
+
+* for each value of the threshold vector
+  * calculate two vectors, specificity and sensitivity
+
+```{r}
+threshold <- seq(0, 0.75, by = 0.01)
+```
+
+* plot "1-spec vs sens" (the ROC curve)
