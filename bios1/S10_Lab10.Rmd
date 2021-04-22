@@ -1,0 +1,56 @@
+---
+title: "Predicted Probabilities and ROC"
+author: "BIOS 620"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Setup Admissions Data
+
+```{r,message=FALSE}
+library(haven)
+admit <- read_spss("data/admit.sav")
+```
+
+# Specifying the Model
+
+```{r}
+fit <- glm(admit~1 + gre + gpa + rank,  family=binomial, data=admit)
+p.admit <- predict(fit, type="response")
+hist(p.admit)
+```
+
+```{r}
+length(p.admit)
+length(unique(p.admit))
+coff <- unique(p.admit)
+tp <- rep(NA, length(coff))
+fp <- rep(NA, length(coff))
+
+for (i in seq_along(coff))
+{
+  adhv.y <- as.numeric(p.admit >= coff[i])
+  xtab <- table(adhv.y, admit$admit)
+
+  tp[i] <- xtab["1", "1"] / sum(xtab[, "1"])
+  fp[i] <- xtab["1", "0"] / sum(xtab[, "0"])
+}
+
+plot(c(0, 1), c(0, 1), type = "n", axes = F, xlab="", ylab = "")
+axis(1, pos = 0.0)
+axis(2, pos = 0.0, las = 1)
+segments(x0 = c(0, 0, 1), x1 = c(1, 1, 1), y0 = c(0, 1, 0), y1 = c(1, 1, 1))
+lowe <- lowess(x = fp, y = tp, f = 1/10)
+len <- length(lowe$x)
+lines(x = lowe$x, y = lowe$y, lwd = 2, col="red")
+h <- lowe$x[-1] - lowe$x[1:(len - 1)]   # heights of indiv parallelgrams
+ub <- lowe$y[-1]
+lb <- lowe$y[-len]
+# lb <- lowe$y[1:(len - 1)]
+auc1 <- sum( ( (ub + lb) * h )/2 )
+```
