@@ -29,6 +29,8 @@ head(Default)
 ## Specify the Model
 
 ```{r}
+class(Default$default)
+contrasts(Default$default)
 fit <- glm(default ~ 1 + student + balance + income,
     family="binomial", data=Default)
 summary(fit)
@@ -64,15 +66,17 @@ for (i in seq_along(threshold.seq)) {
 
   decision <- as.numeric(p.default > threshold.seq[i])
   myt <- table(decision, Default$default)
-  a = sum(decision==0 & Default$default == "No")
-  d = sum(decision==1 & Default$default == "Yes")
+  a <- sum(decision==0 & Default$default == "No")
+  d <- sum(decision==1 & Default$default == "Yes")
 
   spec[i] <- a / sum(myt[, "No"]) # (myt[1,1]+myt[2,1])
   sens[i] <- d / sum(myt[, "Yes"]) # (myt[1,2]+myt[2,2])
 
 }
 
-spec.sens <- data.frame(specificity = spec, sensitivity = sens)
+spec.sens <- data.frame(specificity = spec, sensitivity = sens, cutoff = threshold.seq)
+head(spec.sens)
+dim(spec.sens)
 ```
 
 ## ROC curve
@@ -80,8 +84,8 @@ spec.sens <- data.frame(specificity = spec, sensitivity = sens)
 ```{r}
 plot(1 - spec.sens[, "specificity"], spec.sens[, "sensitivity"],
     xlim = c(0, 1), ylim = c(0, 1), lwd = 2,
-    type= "l", col = "red", main = "ROC curve",
-    xlab = "1 - Specificity", ylab = "Sensitivity")
+    type = "l", col = "red", main = "ROC curve",
+    xlab = "1 - Specificity", ylab = "Sensitivity", asp = 1)
 abline(a=0, b=1)
 ```
 
@@ -122,7 +126,7 @@ performs in predictive ability.
 ```{r}
 len <- length(lowe$x)
 h <- lowe$x[-1] - lowe$x[-len]   # heights of individual parallelograms
-## OR
+## alternatively
 ## h <- diff(lowe$x)
 
 ub <- lowe$y[-1]
