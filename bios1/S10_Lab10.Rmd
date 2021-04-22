@@ -62,7 +62,7 @@ sens <- spec <- rep(NA, length(threshold.seq))
 
 for (i in seq_along(threshold.seq)) {
 
-  decision <- as.numeric(prob > threshold.seq[i])
+  decision <- as.numeric(p.default > threshold.seq[i])
   myt <- table(decision, Default$default)
   a = sum(decision==0 & Default$default == "No")
   d = sum(decision==1 & Default$default == "Yes")
@@ -78,8 +78,8 @@ spec.sens <- data.frame(specificity = spec, sensitivity = sens)
 ## ROC curve
 
 ```{r}
-plot(1 - sepc.sens[, "specificity"], sepc.sens[, "sensitivity"],
-    xlim = c(0,1), ylim = c(0,1), lwd = 2,
+plot(1 - spec.sens[, "specificity"], spec.sens[, "sensitivity"],
+    xlim = c(0, 1), ylim = c(0, 1), lwd = 2,
     type= "l", col = "red", main = "ROC curve",
     xlab = "1 - Specificity", ylab = "Sensitivity")
 abline(a=0, b=1)
