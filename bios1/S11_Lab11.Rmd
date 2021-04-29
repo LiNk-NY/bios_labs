@@ -17,7 +17,6 @@ library(haven)
 rct <- read_spss("data/data_HELP.sav")
 ```
 
-
 ## Summary statistics
 
 ```{r}
@@ -99,8 +98,8 @@ summary(m_ps)
 ```
 
 Below, this propensity score is calculated by using `predict()` and create a
-dataframe that has the propensity score as well as individual's actual homeless
-status.
+`data.frame` that has the propensity score as well as individual's actual
+homeless status.
 
 ```{r}
 prs_df <- data.frame(pr_score = predict(m_ps, type ="response"),
@@ -126,6 +125,15 @@ prs_df %>% ggplot(aes(x = pr_score)) +
   theme_bw()
 ```
 
+Using 'base' plotting:
+
+```{r}
+par(mfrow = c(1, 2))
+histogram(prs_df[prs_df$homeless == 0, "pr_score"])
+histogram(prs_df[prs_df$homeless == 1, "pr_score"])
+```
+
+
 The method we use below is to find pairs of observations that have very similar
 propensity scores, based on certain measures of **similarity**.
 
@@ -135,21 +143,22 @@ in the background and then matches observations based on the method of choice.
 ```{r}
 library(MatchIt)
 rct_nomiss <- rct %>%  # MatchIt does not allow missing values
-    dplyr::select( cesd, homeless, age, female, racegrp) %>%
+    dplyr::select(cesd, homeless, age, female, racegrp) %>%
     na.omit()
 
 ## ALTERNATIVELY
 vars <- c("cesd", "homeless", "age", "female", "racegrp")
-rct_nomiss2 <- rct[ complete.cases(rct[, vars]), vars]
+rct_nomiss2 <- rct[complete.cases(rct[, vars]), vars]
 # identical(rct_nomiss, rct_nomiss2)
 
 mod_match <- matchit(homeless ~ age + female + racegrp, method = "nearest", 
-    replace=FALSE, M=1, data =rct_nomiss)
+    replace=FALSE, M=1, data=rct_nomiss)
 ```
 
 We can get some information about how successful the matching was using:
 
 ```{r}
+par(mfrow = c(1, 1))
 summary(mod_match) 
 plot(mod_match) 
 ```
@@ -184,6 +193,12 @@ legend("topleft", pch=c(1,2), c("Homeless 0", "Homeless 1"))
 ```{r}
 dta_m %>% group_by(homeless) %>% select(one_of(c("age"))) %>%
   summarise_all(mean)
+
+dta_m %>% group_by(homeless) %>% summarize(meanAge = mean(age)) 
+```
+
+```{r}
+tapply(X = dta_m$age, INDEX = dta_m$homeless, FUN = mean)
 ```
 
 # Estimating treatment effects
