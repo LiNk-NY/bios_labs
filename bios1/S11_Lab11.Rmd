@@ -1,0 +1,203 @@
+---
+title: "Propensity Scores"
+author: "BIOS 620"
+rcte: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Setup load HELP RCT data
+
+```{r}
+library(haven)
+rct <- read_spss("data/data_HELP.sav")
+```
+
+
+## Summary statistics
+
+```{r}
+summary(rct$cesd)
+summary(rct$cesd[rct$homeless==0])
+summary(rct$cesd[rct$homeless==1])
+sd(rct$cesd)
+sd(rct$cesd[rct$homeless==0])
+sd(rct$cesd[rct$homeless==1])
+```
+
+## Histograms
+
+```{r}
+par(mfrow=c(3,1))
+hist(rct$cesd, las=1)
+hist(rct$cesd[rct$homeless==0], las=1)
+hist(rct$cesd[rct$homeless==1], las=1)
+```
+
+
+## Density plots
+
+```{r}
+par(mfrow=c(3,1))
+plot(density(rct$cesd), las=1)
+plot(density(rct$cesd[rct$homeless==0]), las=1)
+plot(density(rct$cesd[rct$homeless==1]), las=1)
+```
+
+### Boxplots
+
+```{r}
+par(mfrow=c(1,2))
+boxplot(rct$cesd, ylab="Depression", las=1)
+boxplot(cesd ~ homeless, data = rct, xlab="homeless", ylab="Depression", las=1)
+```
+
+
+# Describing the covariates (potential confounders): age
+
+```{r}
+t.test(rct$age, rct$homeless)
+```
+
+# Describing the covariates (potential confounders): female
+
+```{r}
+chisq.test(rct$female, rct$homeless)
+```
+
+
+# Describing the covariates (potential confounders): racegrp
+```{r}
+chisq.test(rct$racegrp, rct$homeless)
+```
+
+
+# Confouding model based causal inference (univariate analysis, unadjusted effect)
+
+```{r}
+fit <- lm(cesd ~ 1 + homeless,data=rct)
+summary(fit)
+```
+
+# Confouding model based causal inference (multivariate analysis, adjusted effect)
+
+```{r}
+fit <- lm(cesd ~ 1 + homeless + age + female + factor(racegrp),data=rct)
+summary(fit)
+```
+
+# Produce the propensity score
+
+```{r}
+m_ps <- glm(homeless ~ 1 + age + female + factor(racegrp),
+    family=binomial, data=rct)
+summary(m_ps)
+```
+
+Below, this propensity score is calculated by using `predict()` and create a
+dataframe that has the propensity score as well as individual's actual homeless
+status.
+
+```{r}
+prs_df <- data.frame(pr_score = predict(m_ps, type ="response"),
+    homeless = m_ps$model$homeless)
+head(prs_df)
+```
+
+After estimating the propensity score, it is useful to plot histograms of the
+estimated propensity scores by homeless status: 
+
+### Examining the region of common support of the scores
+
+```{r}
+library(ggplot2)
+library(dplyr)
+prs_df$homelessf <- factor(prs_df$homeless, levels = 0:1,
+    labels = paste("Homeless status:", c("no", "yes"))
+)
+prs_df %>% ggplot(aes(x = pr_score)) +
+  geom_histogram( color = "white") +
+  facet_wrap(~ homelessf) +
+  xlab("Probability of being homeless") +
+  theme_bw()
+```
+
+The method we use below is to find pairs of observations that have very similar
+propensity scores, based on certain measures of **similarity**.
+
+We use the package MatchIt for this. This package estimates the propensity score
+in the background and then matches observations based on the method of choice.
+
+```{r}
+library(MatchIt)
+rct_nomiss <- rct %>%  # MatchIt does not allow missing values
+    dplyr::select( cesd, homeless, age, female, racegrp) %>%
+    na.omit()
+
+## ALTERNATIVELY
+vars <- c("cesd", "homeless", "age", "female", "racegrp")
+rct_nomiss2 <- rct[ complete.cases(rct[, vars]), vars]
+# identical(rct_nomiss, rct_nomiss2)
+
+mod_match <- matchit(homeless ~ age + female + racegrp, method = "nearest", 
+    replace=FALSE, M=1, data =rct_nomiss)
+```
+
+We can get some information about how successful the matching was using:
+
+```{r}
+summary(mod_match) 
+plot(mod_match) 
+```
+
+# Examine the matched data 
+
+To create a data.frame containing only the matched observations, use the
+`match.data()` function:
+
+```{r}
+dta_m <- match.data(mod_match) 
+dim(dta_m)
+dim(rct)
+head(dta_m, 4)
+```
+
+# Visual inspection (e.g., with covariate Age)
+
+```{r}
+par(mfrow=c(1,1))
+
+plot(dta_m$distance[dta_m$homeless==0],  dta_m$age[dta_m$homeless==0], 
+    xlab="Propensity Score", ylab="Age", las=1)
+
+points(dta_m$distance[dta_m$homeless==1],  dta_m$age[dta_m$homeless==1], pch=2)
+
+legend("topleft", pch=c(1,2), c("Homeless 0", "Homeless 1"))
+```
+
+# Difference in means (e.g., the Age variable)
+
+```{r}
+dta_m %>% group_by(homeless) %>% select(one_of(c("age"))) %>%
+  summarise_all(mean)
+```
+
+# Estimating treatment effects
+
+Estimating the risk effect is simple once we have a matched sample that we are
+happy with.
+
+```{r}
+fit1 <- lm(cesd ~ homeless, data = dta_m, weights = weights)
+```
+
+# Cluster-robust standard errors
+
+```{r}
+library(lmtest)
+coeftest(fit1,  cluster = ~subclass)
+```
