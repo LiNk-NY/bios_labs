@@ -1,0 +1,45 @@
+---
+title: "Logistic Regression Answer Key"
+author: "BIOS 620"
+output: word_document
+---
+
+# Lab 8 (Challenger O-ring)
+
+## Exercise
+
+Calculate the probability of o-ring failure with the Challenger data at a
+temperature of **31** degrees Fahrenheit.
+
+```{r}
+library(readxl)
+challenger <- read_excel("data/prechallenger.xls")
+## a tibble
+challenger
+```
+
+## Plot the data
+
+Let's visualize the data.
+
+```{r}
+with(challenger, plot(temp, damage, axes = FALSE, pch = 16))
+axis(side = 2, at = c(0, 1))
+axis(side = 1, at = seq(50, 85, by = 5))
+```
+
+## Logistic Regression Model
+
+```{r}
+fit <- glm(damage ~ temp, data = challenger, family = "binomial")
+summary(fit)
+```
+
+## Predicting the probability of failure given new data
+
+The temperature when STS 51-L (Challenger) was launched was 31 degrees F.
+
+```{r}
+predict(fit, newdata = data.frame(temp = 31), type = "response")
+```
+
