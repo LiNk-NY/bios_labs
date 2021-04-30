@@ -1,0 +1,139 @@
+---
+title: "Predicted Probabilities and ROC (AK)"
+author: "BIOS 620"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  word_document: default
+---
+
+# Setup load `admit.sav` dataset
+
+```{r}
+library(haven)
+admit <- read_spss("data/admit.sav")
+```
+
+Check the dataset:
+
+```{r}
+head(admit)
+```
+
+Check your outcome variable:
+
+```{r}
+table(admit$admit)
+```
+
+# Instructions
+
+* Use the `admit.sav` data, fit a prediction model with "admit" as the response
+variable to predict being admitted ("admit" = 1), using `gre`, `gpa`, `rank`,
+and the interaction of `gre` and `gpa` as predictors.
+
+## Fitting the model
+
+```{r}
+model <- glm(admit ~ gre + gpa + rank + gre*gpa, data = admit)
+summary(model)
+```
+
+## Obtain the predicted probabilities
+
+```{r}
+p.admit <- predict(model, type = "response")
+```
+
+* for each value of the threshold vector
+  * calculate two vectors, specificity and sensitivity
+
+```{r}
+thresholds <- seq(0, 0.75, by = 0.01)
+sens <- spec <- rep(NA, length(thresholds))
+for (i in seq_along(threshold)) {
+
+  decision <- as.numeric(p.admit > thresholds[i])
+  cmat <- table(decision, admit$admit)
+  a <- sum(decision==0 & admit$admit == 0)
+  d <- sum(decision==1 & admit$admit == 1)
+
+  spec[i] <- a / sum(cmat[, "0"]) # (cmat[1,1] + cmat[2,1])
+  sens[i] <- d / sum(cmat[, "1"]) # (cmat[1,2] + cmat[2,2])
+   
+}
+spec.sens <- data.frame(specificity = spec, sensitivity = sens, cutoff = thresholds)
+head(spec.sens)
+dim(spec.sens)    
+```
+
+# plot "1-spec vs sens" (the ROC curve)
+
+```{r}
+plot(1 - spec.sens[, "specificity"], spec.sens[, "sensitivity"],
+    xlim = c(0, 1), ylim = c(0, 1), lwd = 2,
+    type = "l", col = "red", main = "ROC curve",
+    xlab = "1 - Specificity", ylab = "Sensitivity", asp = 1)
+abline(a=0, b=1)
+```
+
+## Bonus
+
+We plot a the model without the interaction:
+
+```{r}
+model2 <- glm(admit ~ gre + gpa + rank, data = admit)
+p.admit2 <- predict(model2, type = "response")
+thresholds <- seq(0, 0.75, by = 0.01)
+sens <- spec <- rep(NA, length(thresholds))
+for (i in seq_along(threshold)) {
+
+  decision <- as.numeric(p.admit2 > thresholds[i])
+  cmat <- table(decision, admit$admit)
+  a <- sum(decision==0 & admit$admit == 0)
+  d <- sum(decision==1 & admit$admit == 1)
+
+  spec[i] <- a / sum(cmat[, "0"]) # (cmat[1,1] + cmat[2,1])
+  sens[i] <- d / sum(cmat[, "1"]) # (cmat[1,2] + cmat[2,2])
+   
+}
+spec.sens2 <- data.frame(specificity = spec, sensitivity = sens,
+    cutoff = thresholds)
+head(spec.sens2)
+dim(spec.sens2)    
+```
+
+## Add line to plot
+
+```{r}
+lines(x = 1-spec.sens2[["specificity"]], y = spec.sens2[["sensitivity"]],
+    lwd = 2, col="blue")
+```
+
+Test whether the interaction term is significant:
+
+```{r}
+library(lmtest)
+lrtest(model, model2)
+```
+
+## Calculating the Area Under the Curve (AUC)
+
+We can compare models by their AUC. It is a measure of how well the model
+performs in predictive ability.
+
+```{r}
+library(ROCR)
+## with interaction
+pred1 <- prediction(p.admit, as_factor(admit$admit))
+## without interaction
+pred2 <- prediction(p.admit2, as_factor(admit$admit))
+
+## !Warning! Because the package was not properly designed,
+## we obtain the AUC like this:
+unlist(performance(pred1, "auc")@y.values)
+unlist(performance(pred2, "auc")@y.values)
+```
+
+The AUC for the model with the interaction is slightly higher than the
+one without.
+
