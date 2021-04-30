@@ -1,0 +1,143 @@
+---
+title: "Interaction"
+author: "BIOS 620"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Lab 9 (subgroup analysis with HELP RCT)
+
+## Setup load HELP RCT data
+
+```{r}
+library(haven)
+rct <- read_spss("data/data_HELP.sav")
+```
+
+## Instructions
+
+Using the HELP RCT data, fit models with following variables:
+* Response Y: linkstatus (1=linked; 0=otherwise)
+* CovariateX1: treat (1=treated; 0=control)
+* CovariateX2: substance (alcohol/cocaine/heroin)
+
+## Model 1: without interaction.
+
+```{r}
+model1 <- glm(linkstatus ~ treat + substance, family = "binomial", data = rct)
+summary(model1)
+```
+
+## Model 2: with interactionX1X2.
+
+```{r}
+model2 <- glm(linkstatus ~ treat + substance + treat*substance,
+    family = "binomial", data = rct)
+summary(model2)
+```
+
+# Fill in the table
+
+## No interaction
+
+```{r}
+contrasts(factor(rct$treat))
+contrasts(factor(rct$substance))
+```
+
+This means that Alcohol and Control are the reference.
+
+|                 | Alcohol | Cocaine | Heroin |
+|-----------------|---------|---------|--------|
+| Control         |         |         |        |
+| Treated         |         |         |        |
+| Treated-Control |         |         |        |
+
+### Column 1
+
+'Treat & Alcohol' WRT to 'Control & Alcohol'
+
+```{r}
+names(coef(model1))
+( cAl <- unname(sum(coef(model1) * c(1, 0, 0, 0)) - coef(model1)[1]) )
+( tAl <- unname(sum(coef(model1) * c(1, 1, 0, 0)) - coef(model1)[1]) )
+```
+
+### Column 2
+
+'Treat & Cocaine' WRT to 'Control & Alcohol'
+
+```{r}
+names(coef(model1))
+( cCo <- unname(sum(coef(model1) * c(1, 0, 1, 0)) - coef(model1)[1]) )
+( tCo <- unname(sum(coef(model1) * c(1, 1, 1, 0)) - coef(model1)[1]) )
+```
+
+### Column 3
+
+'Treat & Heroin' WRT 'Control & Alcohol'
+
+```{r}
+names(coef(model1))
+( cHe <- unname(sum(coef(model1) * c(1, 0, 0, 1)) - coef(model1)[1]) )
+( tHe <- unname(sum(coef(model1) * c(1, 1, 0, 1)) - coef(model1)[1]) )
+```
+
+## The table
+
+```{r}
+treatment_labels <- c("control", "treated")
+no_int <- matrix(
+    c(cAl, tAl, cCo, tCo, cHe, tHe),
+    nrow = 2, dimnames = list(treatment_labels, names(table(rct$substance)))
+)
+# we subtract effect of males minus females
+`Treated-Control` <- no_int[2, ] - no_int[1, ]
+no_int <- rbind(no_int, `Treated-Control`)
+no_int
+```
+
+## with interaction
+
+### "Control & Alcohol" is the common reference group
+
+```{r}
+rct$treatSub <- with(rct, interaction(treat, substance))
+contrasts(rct$treatSub)
+```
+
+```{r}
+model2 <- glm(linkstatus ~ treatSub, family = "binomial", data = rct)
+summary(model2)
+```
+
+### Columns 4, 5, and 6
+
+|                 | Alcohol_i | Cocaine_i | Heroin_i |
+|-----------------|-----------|-----------|----------|
+| Control         |           |           |          |
+| Treated         |           |           |          |
+| Treated-Control |           |           |          |
+
+
+```{r}
+coefs <- coef(model2)
+coefs[1] <- 0
+with_int <- matrix(coefs, nrow = 2,
+    dimnames = list(treatment_labels, names(table(rct$substance)))
+)
+# we subtract effect of males minus females
+`Treated-Control` <- with_int[2, ] - with_int[1, ]
+with_int <- rbind(with_int, `Treated-Control`)
+with_int
+```
+
+# Final Table
+
+```{r}
+round(cbind(no_int, with_int),3)
+```
+
