@@ -102,8 +102,12 @@ Below, this propensity score is calculated by using `predict()` and create a
 homeless status.
 
 ```{r}
-prs_df <- data.frame(pr_score = predict(m_ps, type ="response"),
-    homeless = m_ps$model$homeless)
+prs_df <- data.frame(
+    pr_score = predict(m_ps, type ="response"),
+    homeless = m_ps$model$homeless
+)
+rct$pr_score <- predict(m_ps, type ="response")
+
 head(prs_df)
 ```
 
@@ -118,6 +122,8 @@ library(dplyr)
 prs_df$homelessf <- factor(prs_df$homeless, levels = 0:1,
     labels = paste("Homeless status:", c("no", "yes"))
 )
+head(prs_df)
+
 prs_df %>% ggplot(aes(x = pr_score)) +
   geom_histogram( color = "white") +
   facet_wrap(~ homelessf) +
@@ -129,8 +135,8 @@ Using 'base' plotting:
 
 ```{r}
 par(mfrow = c(1, 2))
-histogram(prs_df[prs_df$homeless == 0, "pr_score"])
-histogram(prs_df[prs_df$homeless == 1, "pr_score"])
+hist(prs_df[prs_df$homeless == 0, "pr_score"])
+hist(prs_df[prs_df$homeless == 1, "pr_score"])
 ```
 
 
@@ -159,6 +165,7 @@ We can get some information about how successful the matching was using:
 
 ```{r}
 par(mfrow = c(1, 1))
+class(mod_match)
 summary(mod_match) 
 plot(mod_match) 
 ```
@@ -211,6 +218,13 @@ fit1 <- lm(cesd ~ homeless, data = dta_m, weights = weights)
 ```
 
 # Cluster-robust standard errors
+
+```{r}
+head(dta_m)
+## cluster identifier
+table(dta_m$subclass)
+```
+
 
 ```{r}
 library(lmtest)
