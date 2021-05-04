@@ -158,7 +158,10 @@ rct_nomiss2 <- rct[complete.cases(rct[, vars]), vars]
 # identical(rct_nomiss, rct_nomiss2)
 
 mod_match <- matchit(homeless ~ age + female + racegrp, method = "nearest", 
-    replace=FALSE, M=1, data=rct_nomiss)
+    replace=FALSE, ratio=1, data=rct_nomiss)
+## Example with 2:1 matching
+mod_match2 <- matchit(homeless ~ age + female + racegrp, method = "nearest", 
+    replace=FALSE, ratio=2, data=rct_nomiss)
 ```
 
 We can get some information about how successful the matching was using:
