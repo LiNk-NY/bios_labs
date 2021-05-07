@@ -103,7 +103,7 @@ df$dv <- df$mediator * 0.35 + df$random2 * 0.65
 Model with outcome and 'treatment'
 
 ```{r}
-fit.totaleffect = lm(dv ~ Sepal.Length, df)
+fit.totaleffect <- lm(dv ~ Sepal.Length, data = df)
 summary(fit.totaleffect)
 ```
 
@@ -130,6 +130,21 @@ summary(fit.dv)
 Use the `mediation` package:
 
 ```{r}
-results <- mediate( fit.mediator, fit.dv, treat='Sepal.Length', mediator='mediator', boot=T)
+results <- mediate( fit.mediator, fit.dv, treat='Sepal.Length',
+    mediator='mediator', boot=TRUE, sims = 1000)
 summary(results)
 ```
+
+# Lab Exercise
+
+Re-design the simulation so that: 
+
++ a certain portion of mediator and a certain portion of dependent variable is
+    coming from an confounder, e.g., the "petal.width" variable in the iris data.
++ re-run the mediation analysis 
+    + (1) using the Matti Fichs's mediator model and outcome model (aka,
+        mis-specified model)
+    + (2) using the correct model where the confounder is added
++ compare (1) and (2) and comment results, upload to BB.
+
+
