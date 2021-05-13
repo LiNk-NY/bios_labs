@@ -18,7 +18,7 @@ library(haven)
 ## Read-in
 
 ```{r}
-chain <- read_spss(file = "../data/CHAIN.sav")
+chain <- read_spss(file = "data/CHAIN.sav")
 ```
 
 
@@ -60,8 +60,11 @@ mult.fit <- lm(log_virus ~ factor(treatment) + age + income + healthy + mental,
 
 ### Comparing models
 
-```{r}
+```{r,include=TRUE,results="hide",message=FALSE,warning=FALSE}
 library(stargazer)
+```
+
+```{r}
 stargazer(univ.fit, mult.fit, title="Results from univariate model (1) and multivariate model (2)",
     type="text",intercept.bottom=FALSE,
     style="default", omit.stat = c("rsq", "ser", "f", "adj.rsq"), header=FALSE)
