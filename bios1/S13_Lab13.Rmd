@@ -1,0 +1,108 @@
+---
+title: "Multiple Imputation"
+author: "BIOS 620"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Setup CHAIN dataset
+
+```{r}
+library(haven)
+chain <- read_spss(file = "data/CHAIN.sav")
+```
+
+## Data inspection
+
+```{r}
+dim(chain)
+head(chain)
+```
+
+### Variable names
+
+* **log_virus** log of self reported viral load level
+* **age** age at time of the interview
+* **income** annual family income in 10 intervals
+* **healthy** a continuous scale of physical health with a theoretical range
+between 0 and 100 where better health is associated with higher scale values
+* **mental** a binary measure of poor mental health ( 1=Yes, 0=No )
+* **damage** ordered interval for the CD4 count, which is an indicator of how
+much damage HIV (aka, the virus) has caused to the immune system
+* **treatment** a three-level ordered variable: 0=Not currently taking HAART
+(Highly Active AntiretRoviral Therapy) 1=taking HAART but nonadherent, 2=taking
+HAART and adherent
+
+# Model Fitting
+
+## unadjusted model, i.e., univariate model
+
+```{r}
+univ.fit <- lm(log_virus ~ factor(treatment), data = chain)
+```
+
+## adjusted model, multivariate model
+
+```{r}
+mult.fit <- lm(log_virus ~ factor(treatment) + age + income + healthy + mental,
+               data = chain)
+```
+
+### Comparing models
+
+```{r}
+library(stargazer)
+stargazer(univ.fit, mult.fit, title="Results from univariate model (1) and multivariate model (2)",
+    type="text",intercept.bottom=FALSE,
+    style="default", omit.stat = c("rsq", "ser", "f", "adj.rsq"), header=FALSE)
+```
+
+## Missing data pattern 
+
+```{r}
+md.pattern(chain, plot=FALSE)
+```
+
+```{r}
+chain$mental    <- factor(chain$mental)
+chain$damage    <- factor(chain$damage)
+chain$treatment <- factor(chain$treatment)
+chain
+```
+
+
+# Impute the data
+
+```{r}
+library(mice)
+names(chain)
+data.mice <- mice(chain, m=50, 
+    meth=c("","pmm","pmm","pmm", "pmm", "logreg", "polr", "polr"),
+    printFlag=FALSE)
+```
+
+## Fit model with imputed data
+
+```{r}
+mice.fit <- with(data.mice,
+    lm(log_virus ~ factor(treatment) + age  + income  + healthy  + mental)
+)
+```
+
+## Get estimates with imputed data
+
+```{r}
+mi_result <-  pool(mice.fit)
+```
+
+## Compare imputed estimates vs multivar results 
+
+```{r}
+summary(mi_result)
+summary(mult.fit)
+```
+
