@@ -11,10 +11,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Setup CHAIN dataset
 
-```{r}
+```{r,include=TRUE,results="hide",message=FALSE,warning=FALSE}
 library(haven)
-chain <- read_spss(file = "data/CHAIN.sav")
 ```
+
+## Read-in
+
+```{r}
+chain <- read_spss(file = "../data/CHAIN.sav")
+```
+
 
 ## Data inspection
 
@@ -64,6 +70,7 @@ stargazer(univ.fit, mult.fit, title="Results from univariate model (1) and multi
 ## Missing data pattern 
 
 ```{r}
+library(mice)
 md.pattern(chain, plot=FALSE)
 ```
 
@@ -78,7 +85,6 @@ chain
 # Impute the data
 
 ```{r}
-library(mice)
 names(chain)
 data.mice <- mice(chain, m=50, 
     meth=c("","pmm","pmm","pmm", "pmm", "logreg", "polr", "polr"),
