@@ -65,7 +65,8 @@ library(stargazer)
 ```
 
 ```{r}
-stargazer(univ.fit, mult.fit, title="Results from univariate model (1) and multivariate model (2)",
+stargazer(univ.fit, mult.fit,
+    title="Results from univariate model (1) and multivariate model (2)",
     type="text",intercept.bottom=FALSE,
     style="default", omit.stat = c("rsq", "ser", "f", "adj.rsq"), header=FALSE)
 ```
@@ -75,6 +76,7 @@ stargazer(univ.fit, mult.fit, title="Results from univariate model (1) and multi
 ```{r}
 library(mice)
 md.pattern(chain, plot=FALSE)
+md.pattern(chain, plot=TRUE)
 ```
 
 ```{r}
@@ -89,16 +91,18 @@ chain
 
 ```{r}
 names(chain)
-data.mice <- mice(chain, m=50, 
-    meth=c("","pmm","pmm","pmm", "pmm", "logreg", "polr", "polr"),
-    printFlag=FALSE)
+head(chain, 3)
+data.mice <- mice(chain, m = 50, 
+    method = c("","pmm","pmm","pmm", "pmm", "logreg", "polr", "polr"),
+    printFlag=TRUE)
 ```
 
 ## Fit model with imputed data
 
 ```{r}
+data.mice
 mice.fit <- with(data.mice,
-    lm(log_virus ~ factor(treatment) + age  + income  + healthy  + mental)
+    lm(log_virus ~ treatment + age  + income  + healthy  + mental)
 )
 ```
 
