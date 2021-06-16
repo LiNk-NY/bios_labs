@@ -1,7 +1,7 @@
 ---
 title: "Multivariate Regression for Confounding Models"
 author: "BIOS 620 / PUBH 614"
-output: html_document
+output: word_document
 ---
 
 ```{r setup, include=FALSE}
@@ -12,27 +12,36 @@ knitr::opts_chunk$set(echo = TRUE)
 
 1. set different seeds to see how the results changes, especially
     the coefficient for SL (sugar level)
-    
+
 ```{r}
-###------ Change:  seed
-myseed <- 10
-set.seed(myseed)
+## Original example
+set.seed(1)
+AGE <- rnorm(100, mean=35, sd=5)
+SEX <- rbinom(100, 1, 0.5)
+## SL is dependent on AGE and SEX
+SL <-  rnorm(100, mean=50 + 0.01*AGE - 0.01*SEX, sd=2)
+## True SL Coeff is 2.00
+SBP <- rnorm(100, mean=109.47 + 2.00*SL + 0.5*AGE + 0.5*SEX, sd=5)
+fit1 <- lm(SBP ~ 1 + SL + AGE)
+
+###------ Change:  seed is 10
+set.seed(10)
 AGE <- rnorm(100, mean=35, sd=5)
 SEX <- rbinom(100, size = 1, prob = 0.5)
 SL <-  rnorm(100, mean=50 + 0.01*AGE - 0.01*SEX, sd=2)
 SBP <- rnorm(100, mean=109.47 + 2.00*SL + 0.5*AGE + 0.5*SEX, sd=5)
 
-fit3 <- lm(SBP~1 + SL + AGE)
+fit2 <- lm(SBP ~ 1 + SL + AGE)
 summary(fit3)
 
-stargazer(fit1, fit2, fit3, title="Regression Results",
-   type="text", style="default", header=FALSE)
+stargazer(fit1, fit2, title="Regression Results",
+    type="text", style="default", header=FALSE)
 ```
 
-2. Choose different magnitude of confounding from the unobserved 
+2. Choose different magnitude of confounding from the unobserved
    confounder SEX, re-fit the model and observe the change of the
    impact of SL to SBP (the main study association)
-   
+
 ```{r}
 beta2 <- 0.8
 sdv <- 5
@@ -58,7 +67,7 @@ stargazer(fit1, fit2, title="Regression Results",
 
 3. Try other changes you might consider, e.g., magnitude of error (for
    SL and/or SBP)
-   
+
 ```{r}
 ###------ Change: beta1, beta2 and sdv
 beta1 <- 1.5
@@ -74,7 +83,7 @@ SBP <- rnorm(1000, mean=109.47 + beta1 *SL + beta2*AGE + 0.5*SEX, sd = sdv)
 fit1 <- lm(SBP~1 + SL + AGE)
 summary(fit1)
 ```
-   
+
 Finally, write a `for` loop to gather results from 1000 seeds / replications and
 quantify the percent bias (PRB) of estimating coefficient of SL due to
 omitting confounders.
@@ -93,7 +102,7 @@ for (myseed in seq_len(num_reps)) {
    SEX <- rbinom(1000, size = 1, prob = 0.5)
    SL <-  rnorm(1000, mean=50 + 0.01*AGE - 0.01*SEX, sd=2)
    SBP <- rnorm(1000, mean=109.47 + beta1.true *SL + 0.5*AGE + 0.5*SEX, sd= 5)
-   
+
    myfit <- lm(SBP~1 + SL + AGE + SEX)
    summary(myfit)
    beta1.c[myseed] <- coefficients(myfit)["SL"]
@@ -108,7 +117,7 @@ beta1.c <- replicate(1000, {
    SEX <- rbinom(1000, size = 1, prob = 0.5)
    SL <-  rnorm(1000, mean=50 + 0.01*AGE - 0.01*SEX, sd=2)
    SBP <- rnorm(1000, mean=109.47 + beta1.true *SL + 0.5*AGE + 0.5*SEX, sd= 5)
-   
+
    myfit <- lm(SBP~1 + SL + AGE + SEX)
    summary(myfit)
    coef(myfit)[["SL"]]
