@@ -1,0 +1,55 @@
+---
+title: "Simple Linear Regression"
+author: "BIOS 620 / PUBH 614"
+output: word_document
+---
+
+# Reading a SAS file
+
+```{r}
+library(haven)
+french <- read_sas("data/French_males.sas7bdat")
+```
+
+Inspect the data:
+
+```{r}
+head(french)
+dim(french)
+names(french)
+```
+
+# Describe the variables
+
+
+## Numerically
+
+```{r}
+summary(french$Age)
+summary(french$logDR)
+```
+
+## Visually
+
+```{r}
+hist(french$logDR)
+plot(french$Age, french$logDR)
+
+```
+
+# Fit a simple linear regression
+
+```{r}
+myfit <- lm( logDR ~ Age, data = french)
+summary(myfit)
+myfit
+```
+
+
+## Plotting a fitted line over a scatterplot
+
+```{r}
+plot(mydata$Age, mydata$logDR)
+abline(myfit, col = "red")
+```
+
