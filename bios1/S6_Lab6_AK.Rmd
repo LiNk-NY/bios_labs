@@ -1,7 +1,6 @@
 ---
 title: "Model Diagnostics Answer Key"
 author: "BIOS 620"
-date: "3/18/2021"
 output: word_document
 ---
 

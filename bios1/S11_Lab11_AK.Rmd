@@ -1,7 +1,6 @@
 ---
 title: "Propensity Scores Answer Key"
 author: "BIOS 620"
-date: "5/17/2021"
 output: word_document
 ---
 
@@ -81,17 +80,17 @@ We can get some information about how successful the matching was using:
 ```{r}
 par(mfrow = c(1, 1))
 class(mod_match)
-summary(mod_match) 
-plot(mod_match) 
+summary(mod_match)
+plot(mod_match)
 ```
 
-## Examine the matched data 
+## Examine the matched data
 
 To create a data.frame containing only the matched observations, use the
 `match.data()` function:
 
 ```{r}
-dta_m <- match.data(mod_match) 
+dta_m <- match.data(mod_match)
 dim(dta_m)
 dim(rct)
 head(dta_m, 4)
@@ -104,7 +103,7 @@ head(dta_m, 4)
 ```{r}
 par(mfrow=c(1,1))
 
-plot(dta_m$distance[dta_m$homeless==0],  dta_m$age[dta_m$homeless==0], 
+plot(dta_m$distance[dta_m$homeless==0],  dta_m$age[dta_m$homeless==0],
     xlab="Propensity Score", ylab="Age", las=1)
 
 points(dta_m$distance[dta_m$homeless==1],  dta_m$age[dta_m$homeless==1], pch=2)
