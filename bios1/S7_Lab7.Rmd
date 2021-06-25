@@ -1,7 +1,6 @@
 ---
 title: "RCT / Review Session"
 author: "BIOS 620"
-date: "3/18/2021"
 output:
   word_document: default
 ---
@@ -44,13 +43,13 @@ fit0 <- lm(yield ~ treat, data = penicillin)
 fit1 <- lm(yield ~ blend, data = penicillin)
 ```
 
-Is the main effect of blend significant? 
+Is the main effect of blend significant?
 
 ```{r}
 anova(g, fit0)
 ```
 
-Is the main effect of treatment significant? 
+Is the main effect of treatment significant?
 
 ```{r}
 anova(g, fit1)
@@ -109,7 +108,7 @@ intercept + (betawt*4)
 
 ```{r}
 library(haven)
-nhanes <- read_spss("data/NHANES_Lab4.sav")
+nhanes <- read_spss("../data/NHANES_Lab4.sav")
 ```
 
 ### create our factor
@@ -165,7 +164,7 @@ Note. We just used a vectorized operation!
 
 ### Reference group changes
 
-The aim here is to compare beta values when reference groups change. 
+The aim here is to compare beta values when reference groups change.
 The differences in magnitudes across the groups should be the same!
 
 First, we two models where the only difference is the reference group
@@ -214,6 +213,6 @@ f1
 ```
 
 The coefficients are the same whether you add or subtract 5 depending on
-the reference category that changes. 
+the reference category that changes.
 
 
