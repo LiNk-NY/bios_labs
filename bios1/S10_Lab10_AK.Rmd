@@ -10,7 +10,7 @@ output:
 
 ```{r}
 library(haven)
-admit <- read_spss("data/admit.sav")
+admit <- read_spss("admit.sav")
 ```
 
 Check the dataset:
@@ -34,7 +34,8 @@ and the interaction of `gre` and `gpa` as predictors.
 ## Fitting the model
 
 ```{r}
-model <- glm(admit ~ gre + gpa + rank + gre*gpa, data = admit)
+model <- glm(admit ~ gre + gpa + rank + gre*gpa, family = "binomial",
+    data = admit)
 summary(model)
 ```
 
@@ -50,7 +51,7 @@ p.admit <- predict(model, type = "response")
 ```{r}
 thresholds <- seq(0, 0.75, by = 0.01)
 sens <- spec <- rep(NA, length(thresholds))
-for (i in seq_along(threshold)) {
+for (i in seq_along(thresholds)) {
 
   decision <- as.numeric(p.admit > thresholds[i])
   cmat <- table(decision, admit$admit)
@@ -59,11 +60,11 @@ for (i in seq_along(threshold)) {
 
   spec[i] <- a / sum(cmat[, "0"]) # (cmat[1,1] + cmat[2,1])
   sens[i] <- d / sum(cmat[, "1"]) # (cmat[1,2] + cmat[2,2])
-   
+
 }
 spec.sens <- data.frame(specificity = spec, sensitivity = sens, cutoff = thresholds)
 head(spec.sens)
-dim(spec.sens)    
+dim(spec.sens)
 ```
 
 # plot "1-spec vs sens" (the ROC curve)
@@ -94,12 +95,12 @@ for (i in seq_along(threshold)) {
 
   spec[i] <- a / sum(cmat[, "0"]) # (cmat[1,1] + cmat[2,1])
   sens[i] <- d / sum(cmat[, "1"]) # (cmat[1,2] + cmat[2,2])
-   
+
 }
 spec.sens2 <- data.frame(specificity = spec, sensitivity = sens,
     cutoff = thresholds)
 head(spec.sens2)
-dim(spec.sens2)    
+dim(spec.sens2)
 ```
 
 ## Add line to plot
