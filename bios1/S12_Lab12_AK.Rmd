@@ -14,7 +14,6 @@ knitr::opts_chunk$set(echo = TRUE)
 library(mediation)
 data(iris)
 df <- iris
-set.seed(12334)
 ```
 
 First, let's simulate the mediator, "attractiveness to the bee." This variable
@@ -23,10 +22,12 @@ of its value is Sepal.Length + 65% of its value is random noise.
 
 
 ```{r}
+set.seed(12334)
 df$random1 <- runif(nrow(df), min = min(df$Sepal.Length),
     max = max(df$Sepal.Length) )
 df$random2 <- runif(nrow(df), min = min(df$Petal.Width),
     max = max(df$Petal.Width))
+```
 
 ```{r}
 df$mediator <- df$Sepal.Length * 0.25 +  df$random1 * 0.5 + df$random2 * 0.25
@@ -112,3 +113,4 @@ results2 <- mediate(fit.mediator, fit.dv, treat='Sepal.Length',
 summary(results1)
 summary(results2)
 ```
+
