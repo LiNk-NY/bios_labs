@@ -1,7 +1,6 @@
 ---
 title: "Lab Exercise Chi Square"
 author: "PUBH 614"
-date: "2/28/2021"
 output: html_document
 ---
 
@@ -40,11 +39,11 @@ res$expected
 ## Manual calculation of expected values (advanced)
 
 To calculate manually, you need to use `rowSums` and `colSums` at
-each cell and then divide by the grand total: 
+each cell and then divide by the grand total:
 
 $ e = \frac{row.sum \times col.sum}{grand.total} $
 
-For the first cell: 
+For the first cell:
 
 ```{r}
 (rowSums(femaleHEC)[1] * colSums(femaleHEC)[1]) / sum(femaleHEC)
@@ -53,7 +52,7 @@ For the first cell:
 As you can see this matches with `res$expected[1]`: `r res$expected[1]`.
 
 To avoid doing all these calculations manually we can get a little help from
-R. 
+R.
 
 First we get all the combinations of `rowSums` and `columSums` pairs for each
 cell:
@@ -75,7 +74,7 @@ at the same time:
 expecteds <- apply(allCombos, 1, function(x) x[[1]] * x[[2]])  / sum(femaleHEC)
 ```
 
-Now we can reconstruct the matrix of results with the `matrix` function 
+Now we can reconstruct the matrix of results with the `matrix` function
 and some arguments:
 
 ```{r}
@@ -105,7 +104,7 @@ prop.table(femaleHEC, margin = 1L)
 ```
 
 
-# State you null and alternative hypothesis: 
+# State you null and alternative hypothesis:
 
 Chi-square test examines whether rows and columns of a contingency table are
 statistically significantly associated.
@@ -124,14 +123,14 @@ reschi
 reschi$p.value
 ```
 
-Reject the $H_0$ hypothesis. Female hair and eye color are not independent. 
+Reject the $H_0$ hypothesis. Female hair and eye color are not independent.
 
 # Relative Risk
 
 Let's create an example dataset from the University of Virginia:
 
 ```{r}
-MI <- matrix(c(189, 104, 10845, 10933), nrow = 2, dimnames = 
+MI <- matrix(c(189, 104, 10845, 10933), nrow = 2, dimnames =
 list(Group = c("Placebo","Aspirin"), MI = c("Yes","No")))
 ```
 
@@ -163,7 +162,7 @@ rr.out <- riskratio(MI, rev = "b")
 rr.out$measure
 ```
 
-Hypothesis test for Relative Risk: 
+Hypothesis test for Relative Risk:
 
 $H_0: RR = 1$
 $H_a: RR \neq 1$

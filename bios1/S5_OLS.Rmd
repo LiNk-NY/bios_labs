@@ -1,7 +1,6 @@
 ---
 title: "OLS Regression Example"
 author: "BIOS 620 / PUBH 614"
-date: "2/27/2021"
 output: html_document
 runtime: shiny
 ---
@@ -178,7 +177,7 @@ plot(mtcars$qsec, mtcars$mpg, asp = 1)
 fit1 <- lm(mpg ~ qsec, data = mtcars)
 abline(fit1, col = "blue")
 # identify(mtcars$qsec, mtcars$mpg)
-rownum <- 20 
+rownum <- 20
 polygon(
   x = c(
     rep(mtcars$qsec[rownum], 2),
