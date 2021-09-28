@@ -1,7 +1,6 @@
 ---
 title: "OLS and MLE"
 author: "BIOS 620"
-date: "3/8/2021"
 output:
   html_document:
     df_print: paged
@@ -101,10 +100,10 @@ ESS <- sum((mtcars$mpg - yhat0)^2)
 ```
 
 ```{r}
-RegSS + ESS 
+RegSS + ESS
 ```
 
-# Manually calculate the coefficients 
+# Manually calculate the coefficients
 
 \[
 \begin{split}

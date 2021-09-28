@@ -1,7 +1,6 @@
 ---
 title: "Model Diagnostics"
 author: "BIOS 620"
-date: "3/11/2021"
 output: html_document
 ---
 
@@ -98,7 +97,7 @@ male_coef / stderr
 # Model Diagnostics
 
 Now let's look at what model diagnostics we can run to ensure that our
-assumptions for a linear regression are met. 
+assumptions for a linear regression are met.
 
 ## Constant variance check (homoscedasticity)
 
@@ -117,7 +116,7 @@ fit <- lm(mpg ~ wt, data = mtcars)
 fit
 ```
 
-Model summary output: 
+Model summary output:
 
 ```{r}
 summary(fit)
