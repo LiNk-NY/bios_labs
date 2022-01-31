@@ -1,7 +1,6 @@
 ---
-title: "Lab 1"
+title: "Lab 1 Introduction"
 author: "Session 1"
-date: "2/4/2021"
 output:
   slidy_presentation: default
 ---
@@ -109,5 +108,7 @@ browseVignettes("packagename")                | browseVignettes("dplyr")
 
 * Critically important
 * "Debugging" your script involves:
-  * Step by step, line by line process
+  * Step by step, line by line checking of your code
   * Know your inputs and outputs
+  * Creating a [minimially reproducible example](https://stackoverflow.com/a/5963610/6558242)
+
