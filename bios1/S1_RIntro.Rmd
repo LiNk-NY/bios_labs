@@ -54,6 +54,7 @@ Here we create a character vector of the words for three colors.
 
 ```{r}
 c("red", "blue", "green")
+class( c("red", "blue", "green") )
 ```
 
 ## Logical
@@ -64,6 +65,7 @@ values into a vector:
 
 ```{r}
 c(TRUE, FALSE, TRUE)
+class( c(TRUE, FALSE, TRUE) )
 ```
 
 ## Assignment
@@ -74,6 +76,7 @@ side.
 
 ```{r}
 myvar <- c(1, 2, 3)
+class(myvar)
 ```
 
 In the above code, the object "myvar" is set to a vector of numbers (1, 2, and
@@ -152,8 +155,8 @@ file.choose()
 We assign this to a variable / object in order to work with it. 
 
 ```{r}
-bwt <- read.csv(file = "/cloud/project/data/birthwt.csv")
-head(bwt)
+bwt <- read.csv(file = "birthwt.csv")
+head(x = bwt, n = 10)
 tail(bwt)
 dim(bwt)
 class(bwt)
@@ -173,6 +176,7 @@ to give the new column names.
 
 ```{r}
 names(bwt) <- c("MID", "Order", "Wt", "Age", "CID") 
+head(bwt)
 ```
 
 A `data.frame` object is a standard representation for data in R. It is quite
@@ -190,23 +194,43 @@ head(bwt)
 
 ## Take a subset of the data
 
-We can either use the subset
+First, we need a condition, e.g., "I only want to restrict to first
+born observations". In R, we would use: `Order == 1`. Because `Order` is
+the variable in `bwt` and its type is `numeric`. The `==` means "equals"; thus
+can be read as "observations where the variable `Order` equals 1".
+
+```{r}
+## take a peek at the logical
+head( with(bwt, Order == 1) )
+## is the same as
+head( bwt$Order == 1 )
+```
+
+With our condition returning logical corresponding to first born babies, we can
+now use the `subset` function:
+
 ```{r}
 bwt.first <- subset(x = bwt, subset = Order == 1)
 ```
 
-Equivalently, we can use the square brackets to take first borns in the
-data:
+This can be interpreted as "take a subset of the `bwt` dataset based on only the
+first born," i.e., `Order == 1`. 
+
+Equivalently, we can use the square brackets to restrict to the first born in
+the data:
 
 ```{r}
 bwt.first <- bwt[ bwt$Order == 1 , ]
 ```
 
+In the 'tidyverse' (the suite of packages built around the 'tidy' philosophy),
+we can use the operational function / verb `filter` to restrict to the same
+set of observations as in previous examples.
+
 ```{r}
 library(dplyr)
 filter(bwt, Order == 1)
 ```
-
 
 ## Descriptive statistics for numerical variables
 
@@ -216,12 +240,21 @@ summary(bwt)
 
 ## Scatterplot of death rate by age
 
+**Important.** We always use the `$` dollar sign symbol to obtain a single column
+from a `data.frame` (`bwt`).
+
 ```{r}
 plot(bwt.first$Wt, bwt.first$Age)
 ```
 
-**Important.** We always use the `$` dollar sign symbol to obtain a single column
-from a `data.frame` (`bwt`).
+Notice the two inputs are numeric vectors! That means that you will have an
+idea with respect to the answer to this operation:
+
+```{r}
+class(bwt.first$Age)
+```
+
+Note. `"integer"` is the cousin of the `"numeric"` class.
 
 ## Regression of death rate on age
 
