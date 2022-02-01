@@ -76,9 +76,10 @@ R to function as a language
 
 # Useful tips for learning R
 
-Pseudo code                                   |   Example code
---------------------------------------------  |   -------------------
-install.packages(packagename)                 | install.packages("dplyr")
+Pseudo code                                   | Example code
+--------------------------------------------  | -------------------
+library("packagename")                        | library("dplyr")
+install.packages("packagename")               | install.packages("dplyr")
 ?functionname                                 | ?select
 ?package::functionname                        | ?dplyr::select
 ? 'Reserved keyword or symbol' (or backticks) | ? '%>%'
