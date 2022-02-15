@@ -1,7 +1,6 @@
 ---
-title: "General FA-Questions"
+title: "Frequently Asked Questions"
 author: "BIOS 620"
-date: "2/22/2021"
 output:
   word_document: default
 ---
@@ -12,30 +11,51 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## How to import a data set?
 
-1. Find your dataset after download.
+1. Finding your dataset after download with either:
 
-### absolute path 
+* file.choose
+* Operating systems file explorer (or finder)
 
-Use this function to find the _absolute path_ to your file. 
+### file.choose
+
+Use `file.choose()` function interactively to get the _absolute path_ to your
+file.
 
 ```{r,eval=FALSE}
 file.choose()
 # [1] "/cloud/project/data/birthwt.csv"
 ```
 
+Note. Windows users may have double backslashes in their paths!
+
+### File explorer (finder)
+
+* Use Shift + Right-click on Windows
+* File properties in the Finder for Mac
+
+### Absolute paths
+
+* Include the drive letter
+* Are generally much longer than relative paths
+* The return of `file.choose()` is an _absolute_ path.
+
 ### relative path
 
-Tip: It is a good idea to always put the data in the same folder as the
+**Tip**: It is a good idea to always put the data in the same folder as the
 RMarkdown file that you are knitting.
 
-Note that `getwd()` is good for R scripts but does not work for RMarkdown.
+Note that `getwd()` is good for interactive use but does not work for
+RMarkdown.
 
 ```{r}
 # put the data where the Rmd lives
 head( read.csv("birthwt.csv") )
 ```
 
-2. Figure out what function do we need to use to import (file extension).
+### Actually Importing
+
+Figure out what function do we need to use to import (based on the file
+extension).
 
 ```{r}
 # ?read.csv
@@ -46,7 +66,15 @@ dim(birthwt)
 class(birthwt)
 ```
 
-## What is y hat? 
+For SAS datasets, we recommend using the `haven` package.
+
+```{r}
+library(haven)
+french <- read_sas("French_males.sas7bdat")
+head(french)
+```
+
+## What is y hat?
 
 ```{r}
 data("mtcars")
