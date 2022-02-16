@@ -30,7 +30,7 @@ Note. Windows users may have double backslashes in their paths!
 
 ### File explorer (finder)
 
-* Use Shift + Right-click on Windows
+* Use Shift + Right-click on Windows > Copy as Path
 * File properties in the Finder for Mac
 
 ### Absolute paths
