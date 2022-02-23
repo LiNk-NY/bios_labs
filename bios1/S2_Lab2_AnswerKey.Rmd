@@ -8,7 +8,7 @@ output: word_document
 
 ```{r}
 library(haven)
-french <- read_sas("data/French_males.sas7bdat")
+french <- read_sas("French_males.sas7bdat")
 ```
 
 Inspect the data:
