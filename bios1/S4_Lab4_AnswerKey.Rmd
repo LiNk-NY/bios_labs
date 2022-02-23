@@ -60,8 +60,11 @@ plots and outputs.
 ```{r}
 table(nhanes$Male)
 edu_levels <- attributes(nhanes$Education)$labels
-nhanes$Edu_f <- factor(nhanes$Education, levels = edu_levels,
-    labels = names(edu_levels))
+nhanes$Edu_f <- factor(
+    x = nhanes$Education,
+    levels = edu_levels,
+    labels = names(edu_levels)
+)
 table(nhanes$Edu_f)
 prop.table( table(nhanes$Edu_f) )
 ```
@@ -134,8 +137,11 @@ name for the factor variable (`Edu_f`).
 
 ```{r}
 edu_levels <- attributes(nhanes$Education)$labels
-nhanes$Edu_f <- factor(nhanes$Education, levels = edu_levels,
-    labels = names(edu_levels))
+nhanes$Edu_f <- factor(
+    x = nhanes$Education,
+    levels = edu_levels,
+    labels = names(edu_levels)
+)
 ```
 
 We check the reference category in the variable:
