@@ -24,6 +24,7 @@ dim(mtcars)
 head(mtcars)
 names(mtcars)
 class(mtcars)
+rownames(mtcars)
 ```
 
 # Describe each variable numerically and visually
@@ -33,6 +34,7 @@ To describe a numeric variable, `summary` is a good function to use:
 ```{r}
 summary(mtcars$mpg)
 sd(mtcars$mpg)
+mean(mtcars$mpg)
 ```
 
 To visualize the distribution of a numeric continuous variable, use
@@ -40,6 +42,8 @@ To visualize the distribution of a numeric continuous variable, use
 
 ```{r}
 hist(mtcars$mpg, main = "Histogram of mpg")
+
+hist(mtcars$mpg, main = "Histogram of mpg", breaks = 10)
 ```
 
 ## Transmission
@@ -49,7 +53,8 @@ manual.
 
 ```{r}
 table(mtcars$am)
-prop.table( table(mtcars$am) )
+tab <- table(mtcars$am)
+prop.table( tab )
 ```
 
 To see how transmission type relates to miles per gallon, we use a simple
@@ -77,13 +82,14 @@ the `ifelse` function to create a conditional statement (i.e., does `am` equal
 
 ```{r}
 (  mtcars$am_auto <- ifelse(mtcars$am == 0, 1, 0)  )
+table(mtcars$am_auto)
 # mtcars$am_auto
 ```
 
 We then fit the model again with our new variable `am.new`:
 
 ```{r}
-fit2 <- lm(mpg ~ 1 + factor(am_auto), data = mtcars)
+fit2 <- lm(mpg ~ 1 + am_auto, data = mtcars)
 summary(fit2)
 ```
 
@@ -109,8 +115,9 @@ use the `factor` function. We can also add labels to each 'level' (unique
 value) in the variable with the `labels` argument.
 
 ```{r}
-am_factor <- factor(x = mtcars$am, levels = c(0, 1),
-    labels = c("automatic", "manual"))
+am_factor <- factor(
+    x = mtcars$am, levels = c(0, 1), labels = c("automatic", "manual")
+)
 head(am_factor)
 class(am_factor)
 ```
@@ -205,8 +212,12 @@ Note that the NHANES dataset comes with labels:
 We can use these labels to create a factor:
 
 ```{r}
-nhanes$Education_f <- factor(nhanes$Education,
-    levels = edu_levels, labels = names(edu_levels))
+edu_f <- factor(
+    x = nhanes$Education,
+    levels = edu_levels,
+    labels = names(edu_levels)
+)
+nhanes$Education_f <- edu_f 
 ```
 
 # Exercises
