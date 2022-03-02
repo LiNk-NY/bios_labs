@@ -32,7 +32,7 @@ Y ~ 1 + x1 + x2
 ```
 
 ```{r}
-fit1 <- lm(mpg ~ 1 + qsec, mtcars)
+fit1 <- lm(mpg ~ 1 + qsec, data = mtcars)
 summary(fit1)
 ```
 
@@ -63,6 +63,39 @@ hatdf <- data.frame(yhat0, yhat1, yhat2)
 head(hatdf)
 ```
 
+## Dummy Variables
+
+* Only needed for SPSS and SAS
+* Only make `k` - 1 categories
+* Category that is left out is the reference
+
+```{r}
+library(haven)
+nhanes <- read_spss("NHANES_Lab4.sav")
+head(nhanes, 3)
+nhanes$Edu_f <- as_factor(nhanes$Education)
+table(nhanes$Edu_f)
+
+nhanes$hsGrad <- ifelse(
+   nhanes$Edu_f == "Graduated from HS (but not college)", 1, 0
+)
+nhanes$College <- ifelse(
+   nhanes$Edu_f == "Graduated from College", 1, 0
+)
+# as.numeric(nhanes$Edu_f == "Graduated from College")
+table(nhanes$hsGrad)
+table(nhanes$College)
+
+head(nhanes)
+
+lm(BMXBMI ~ hsGrad + College, data = nhanes)
+# preferred method
+lm(BMXBMI ~ Edu_f, data = nhanes)
+
+lm(BMXBMI ~ factor(Education), data = nhanes)
+```
+
+
 ## Adding a regression line to our scatterplot
 
 ```{r}
@@ -75,7 +108,7 @@ To see these two vectors side by side, we can use the `cbind` function or
 `data.frame`.
 
 ```{r}
-head(cbind(mtcars$qsec, yhat0))
+head(cbind(qsec = mtcars$qsec, yhat0))
 # head(data.frame(mtcars$qsec, yhat0))
 ```
 
@@ -93,6 +126,7 @@ TSS
 
 ```{r}
 RegSS <- sum((yhat0 - y_mean)^2)
+RegSS
 ```
 
 ```{r}
@@ -120,10 +154,12 @@ x_mean <- mean(mtcars$qsec)
 x <- mtcars$qsec
 y <- mtcars$mpg
 beta1 <- sum ((x - x_mean) * (y - y_mean)) / sum ((x - x_mean)^2 )
+beta1
 ```
 
 ```{r}
 beta0 <- y_mean - (beta1 * x_mean)
+beta0
 ```
 
 ```{r}
@@ -154,7 +190,7 @@ is highest given our data.
 Fit a regression with only 1 covariate (either by simulation or real data).
 
 * Fit a linear regression model to obtain the regression coefficients (intercept
-and slope) by using lm() function.
+and slope) by using `lm()` function.
 
 * Manually calculate the coefficients using the formula below and compare with
 the model's output
