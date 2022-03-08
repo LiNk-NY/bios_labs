@@ -7,6 +7,56 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+# Recap
+
+## Working with factors
+
+Use the factor function:
+
+```{r}
+data(mtcars)
+head(mtcars)
+mtcars$cyl_f <- factor(
+    x = mtcars$cyl,
+    levels = c(4, 6, 8),
+    labels = c("four", "six", "eight")
+)
+lm(mpg ~ cyl_f, data = mtcars)
+```
+
+### `relevel` function
+
+```{r}
+mtcars$cyl_f <- relevel(mtcars$cyl_f, ref = "eight")
+lm(mpg ~ cyl_f, data = mtcars)
+```
+
+## Dummy variables
+
+```{r}
+mtcars$cyl_4 <- as.integer(mtcars$cyl == 4)
+mtcars$cyl_6 <- as.integer(mtcars$cyl == 6)
+mtcars$cyl_8 <- as.integer(mtcars$cyl == 8)
+```
+
+Specify the model:
+
+```{r}
+lm(mpg ~ cyl_6 + cyl_8, data = mtcars)
+```
+
+Change the reference category by leaving it out:
+
+```{r}
+lm(mpg ~ cyl_4 + cyl_6, data = mtcars)
+```
+
+$\hat{Y} = 15.1 + 11.56X_{1} + 4.64X_{2}$
+
+$X_{1}$: 1 if 6 cylinder car, 0 otherwise
+
+$X_{2}$: 1 if 8 cylinder car, 0 otherwise
+
 
 # Testing for significance of a multi-level categorical variable
 
@@ -22,8 +72,11 @@ head(nhanes)
 
 ```{r}
 edu_levels <- attributes(nhanes$Education)$labels
-nhanes$Education_f <- factor(nhanes$Education,
-    levels = edu_levels, labels = names(edu_levels))
+nhanes$Education_f <- factor(
+    x = nhanes$Education,
+    levels = edu_levels,
+    labels = names(edu_levels)
+)
 table(nhanes$Education_f)
 ```
 
