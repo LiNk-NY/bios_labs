@@ -236,15 +236,19 @@ and plotting the means would.
 library(Hmisc)
 nhanes$age_groups14 <- cut2(nhanes$Exactage, g = 14)
 sbp_mean_groups <- tapply(nhanes$BPXSY1, nhanes$age_groups14, mean, na.rm = TRUE)
-plot(sbp_mean_groups)
+plot(sbp_mean_groups, cex = 3, pch = 16)
 ```
 
 ### What about BMI and Age?
 
 ```{r}
 bmi_mean_groups <- tapply(nhanes$BMXBMI, nhanes$age_groups14, mean, na.rm = TRUE)
-plot(bmi_mean_groups)
+plot(bmi_mean_groups, cex = 3, pch = 18)
 ```
+
+Note. `cex` and `pch` are `par()` arguments for changing the size
+(**C**haracter **EX**pansion factor) and points (**P**lotting **CH**aracter) in
+the plot.
 
 # Lab 6 (Analyze HELP RCT data as observational study)
 
