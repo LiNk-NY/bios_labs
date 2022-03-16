@@ -108,15 +108,22 @@ intercept + (betawt*4)
 
 ```{r}
 library(haven)
-nhanes <- read_spss("../data/NHANES_Lab4.sav")
+nhanes <- read_spss("data/NHANES_Lab4.sav")
 ```
 
 ### create our factor
 
 ```{r}
+class(nhanes$Education)
 edu_levels <- attributes(nhanes$Education)$labels
-nhanes$Education_f <- factor(nhanes$Education,
-    levels = edu_levels, labels = names(edu_levels))
+class(edu_levels)
+names(edu_levels)
+
+nhanes$Education_f <- factor(
+    x = nhanes$Education,
+    levels = edu_levels,
+    labels = names(edu_levels)
+)
 table(nhanes$Education_f)
 
 # as_factor(nhanes$Education)
@@ -148,7 +155,7 @@ predict(fit,
 ```{r}
 (model_coefs <- coefficients(fit)[-c(2, 4)])
 # age * 30 + intercept + EduCollege * 1
-(model_coefs[3]*30) + sum(model_coefs[1:2])
+unname((model_coefs[3]*30) + sum(model_coefs[1:2]))
 ```
 
 Alternatively, we can multiply by a vector of values that correspond to the
