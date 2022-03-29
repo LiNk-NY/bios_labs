@@ -38,7 +38,9 @@ summary(fit)
 ## Odds Ratio
 
 ```{r}
-exp(fit$coefficient[2])
+exp(fit$coefficients[2])
+coef(fit)
+coefficients(fit)
 ```
 
 # Titanic Example
@@ -53,6 +55,7 @@ titanic <- titanic_train
 
 ```{r}
 table(titanic$Sex)
+prop.table(table(titanic$Sex))
 table(titanic$Sex, titanic$Survived)
 ```
 
@@ -61,31 +64,37 @@ fit <- glm(Survived ~ 1 + Sex, family=binomial, data=titanic)
 summary(fit)
 ```
 
+Perhaps we want to model the probability of surviving as female.
+We would have to change the reference group from `male` to `female`.
+
 ```{r}
-female <- factor(titanic$Sex, levels = c("male", "female"))
-contrasts(female)
+sex_f <- factor(titanic$Sex, levels = c("male", "female"))
+contrasts(sex_f)
 
-titanic$female <- relevel(female, ref = "male")
+with(titanic, table(Sex, sex_f))
 
-fit1 <- glm(Survived ~ female, family = binomial, data = titanic)
+titanic$female <- relevel(sex_f, ref = "male")
+
+fit1 <- glm(Survived ~ sex_f, family = binomial, data = titanic)
 summary(fit1)
 exp(coef(fit1))
 ```
+
+## Creating a dummy variable from a character one
 
 ```{r}
 # ifelse(titanic$Sex == "female", 1, 0)
 titanic$fem01 <- as.numeric(titanic$Sex == "female")
-fit1 <- glm(Survived ~ fem01, family = binomial, data = titanic)
-summary(fit1)
-exp(coef(fit1))
+fit0 <- glm(Survived ~ fem01, family = binomial, data = titanic)
+summary(fit0)
+exp(coef(fit0))
 ```
-
 
 
 ## Odds Ratio
 
 ```{r}
-exp(coef(fit))
+exp(coef(fit1))
 ```
 
 ## Confidence Intervals
@@ -102,14 +111,59 @@ exp(confint(fit1))
 
 What is the probability of surviving as female?
 
+Because we have modeled `male` to be the reference, our calculation
+would produce a probability of surviving for the `female` group.
+
 ```{r}
-exp(coef(fit)[1]) / ( 1 + exp(coef(fit)[1]) )
+exp(sum(coef(fit1))) / ( 1 + exp(sum(coef(fit1))) )
 ```
 
 ## Predict function
 
+Less manually, we can get the probability of surviving for `female` using the
+`predict` function:
+
 ```{r}
-predict(fit, newdata = data.frame(Sex = "female"), type = "response")
+predict(fit1, newdata = data.frame(sex_f = "female"), type = "response")
+```
+
+We can do the same for `male`:
+
+```{r}
+predict(fit1, newdata = data.frame(sex_f = "male"), type = "response")
+```
+
+How do we report Odds Ratios for continuous outcomes?
+
+```{r}
+fit2 <- glm(Survived ~ Age, family = binomial, data = titanic)
+summary(fit2)
+exp(coef(fit2)[2])
+```
+
+For every unit increase in age, the odds of surviving is multiplied by 0.99 
+(indicating decreased odds of surviving).
+
+You can change the scale of the Age variable to make it easier to interpret.
+Divide the age variable by 10 to get an odds ratio for every _decade_ increase
+in age.
+
+```{r}
+titanic$ageby10 <- titanic$Age/10
+fit3 <- glm(Survived ~ ageby10, family = binomial, data = titanic)
+summary(fit3)
+exp(coef(fit3)[2])
+```
+
+For every decade increase in age, the odds of surviving is 0.89 times the
+baseline odds.
+
+You can look at the probability of survival for several decade values.
+
+```{r}
+predict(fit3, newdata = data.frame(ageby10 = 2), type = "response")
+predict(fit3, newdata = data.frame(ageby10 = 3), type = "response")
+predict(fit3, newdata = data.frame(ageby10 = 4), type = "response")
 ```
 
 ## Side note (Mosaic plots)
@@ -119,7 +173,6 @@ data("Titanic")
 library(vcd)
 mosaic(Titanic)
 ```
-
 
 # Exercise
 
