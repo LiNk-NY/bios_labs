@@ -17,6 +17,28 @@ library(haven)
 nhanes <- read_spss("data/NHANES_RN1.sav")
 ```
 
+# Q&A Warmup
+
+Means by group:
+
+```{r}
+sort(names(nhanes))
+with(nhanes, tapply(X = BPXSY1, INDEX = Male, FUN = mean, na.rm = TRUE))
+tapply(nhanes$BPXSY1, nhanes$Male, FUN = mean, na.rm = TRUE)
+
+mean(unlist(nhanes[nhanes$Male == 1, "BPXSY1"]), na.rm = TRUE)
+mean(unlist(nhanes[nhanes$Male == 0, "BPXSY1"]), na.rm = TRUE)
+
+library(dplyr)
+group_by(nhanes, Male) %>% summarize(means = mean(BPXSY1, na.rm = TRUE))
+```
+
+```{r}
+boxplot(BPXSY1 ~ Male, data = nhanes)
+```
+
+
+
 # Linear Regression
 ## Example 1 - SBP on Age & Gender (NHANES 2005-2006, age 20 - 84)
 
@@ -26,6 +48,11 @@ fit2 <- lm(BPXSY1 ~ 1 + Exactage + Male + Exactage:Male, data=nhanes)
 # equivalenly
 fit2 <- lm(BPXSY1 ~ 1 + Exactage + Male + Exactage * Male, data=nhanes)
 fit2 <- lm(BPXSY1 ~ 1 + Exactage * Male, data=nhanes)
+```
+
+```{r}
+head(model.matrix(BPXSY1 ~ 1 + Exactage + Male + Exactage:Male, data=nhanes))
+head(model.matrix(BPXSY1 ~ 1 + Exactage + Male + Exactage * Male, data=nhanes))
 ```
 
 ## Visual inspection of the relationship between X and Y
@@ -54,6 +81,7 @@ stargazer(fit1, fit2,
 
 ```{r}
 complete2 <- complete.cases(nhanes[, c("BPXSY1", "Exactage", "Male")])
+table(complete2)
 nhanes2 <- nhanes[complete2, ]
 ```
 
@@ -63,10 +91,11 @@ nhanes2 <- nhanes[complete2, ]
 with(nhanes2,
     plot(Exactage, BPXSY1, xlab="Age", ylab="SBP", las=1)
 )
+# nhanes2[nhanes2$Male == 1, ]
 fit.male   <- lm(BPXSY1 ~ 1 + Exactage , data = subset(nhanes2, Male==1))
 fit.female <- lm(BPXSY1 ~ 1 + Exactage,  data = subset(nhanes2, Male==0))
-abline(fit.female, col = "blue", lwd = 2)
-abline(fit.male, col = "red", lwd = 2)
+abline(fit.female, col = "blue", lwd = 3)
+abline(fit.male, col = "red", lwd = 3)
 legend("topleft", bty="n", c("Male", "Female"), lty=c(1,1), col=c("red", "blue"))
 ```
 
@@ -81,6 +110,7 @@ table(nhanes$Hypertension)
 
 ```{r}
 complete3 <- complete.cases(nhanes[, c("Hypertension", "Education", "Male")])
+table(complete3)
 nhanes3 <- nhanes[complete3, ]
 dim(nhanes3)
 ```
@@ -88,15 +118,15 @@ dim(nhanes3)
 ### create our factor
 
 ```{r}
-nhanes3$Edu <- as_factor(nhanes3$Education)
+nhanes3$Edu_f <- as_factor(nhanes3$Education)
 ```
 
 ## Testing for the interaction
 
 ```{r}
-fit3 <- glm(Hypertension ~ 1 + Male + Edu, family='binomial', data=nhanes3)
+fit3 <- glm(Hypertension ~ 1 + Male + Edu_f, family='binomial', data=nhanes3)
 
-fit4 <- glm(Hypertension ~ 1 + Male + Edu + Male:Edu, family='binomial', data=nhanes3)
+fit4 <- glm(Hypertension ~ 1 + Male + Edu_f + Male:Edu_f, family='binomial', data=nhanes3)
 ```
 
 ## Results
@@ -109,6 +139,11 @@ stargazer(fit3, fit4,
     style="default", header=FALSE
 )
 ```
+
+```{r}
+head(model.matrix(Hypertension ~ 1 + Male + Edu_f + Male:Edu_f, data=nhanes3))
+```
+
 
 ## Analysis of Deviance (Likelihood Ratio Test)
 
@@ -124,9 +159,13 @@ lrtest(fit3, fit4)
 ## Stratified analysis
 
 ```{r}
-dat.noHS <- subset(nhanes3, Education == 1)
-dat.HS   <- subset(nhanes3, Education == 2)
-dat.College <- subset(nhanes3, Education == 3)
+dat.noHS <- subset(nhanes3, Edu_f == "Not graduated from HS")
+dat.HS   <- subset(nhanes3, Edu_f == "Graduated from HS (but not college)")
+dat.College <- subset(nhanes3, Edu_f == "Graduated from College")
+```
+
+```{r}
+sum(is.na(nhanes3$Edu_f))
 ```
 
 ### Model fit
@@ -145,15 +184,36 @@ stargazer(fit5a, fit5b, fit5c,
 )
 ```
 
+```{r}
+library(purr)
+mtcars %>%
+  split(.$cyl) %>%
+  map(~ lm(mpg ~ wt, data = .x)) %>%
+  map(summary) %>%
+  map_dbl("r.squared")
+```
+
+```{r}
+nhanes3 %>%
+  split(.$Edu_f) %>% 
+  map(~ glm(Hypertension ~ 1 + Male,  family='binomial', data= .x)) %>%
+  map(summary)
+```
+
+
 ### Addressing repetitive code
 
 You can use a list representation and iterate over the list.
 See also the `purrr` package in the `tidyverse`.
 
 ```{r}
-nhaneslist <- split(nhanes3, nhanes3$Education)
+nhaneslist <- split(nhanes3, nhanes3$Edu_f)
 res <- lapply(nhaneslist, function(model) {
     glm(Hypertension ~ 1 + Male, family = "binomial", data = model)
+})
+
+summ <- lapply(nhaneslist, function(model) {
+    summary(glm(Hypertension ~ 1 + Male, family = "binomial", data = model))
 })
 ```
 
@@ -161,13 +221,14 @@ res <- lapply(nhaneslist, function(model) {
 
 ```{r}
 stargazer(res,
-    title="Stratified analysis between gender and hypertension", df=FALSE,intercept.bottom=FALSE,
+    title="Stratified analysis between gender and hypertension", df=FALSE,
+    intercept.bottom=FALSE,
     type="text", omit.stat=c("all"),
     style="default", header=FALSE
 )
 ```
 
-# Estimates Table
+# Estimates Table (NO INTERACTION)
 
 |             | NoHS | HS | College |
 |-------------|------|:--:|---------|
@@ -201,6 +262,7 @@ Male & Graduated from College WRT Female & Not graduated from HS
 
 ```{r}
 names(coef(fit3))
+coef(fit3)
 ( fC <- unname(sum(coef(fit3) * c(1, 0, 0, 1)) - coef(fit3)[1]) )
 ( mC <- unname(sum(coef(fit3) * c(1, 1, 0, 1)) - coef(fit3)[1]) )
 ```
@@ -220,6 +282,7 @@ no_int <- matrix(
     c(fNoHS, mNoHS, fHS, mHS, fC, mC),
     nrow = 2, dimnames = list(levels(nhanes3$Sex), levels(nhanes3$Edu))
 )
+no_int
 # we subtract effect of males minus females
 `Male-Female` <- no_int[2, ] - no_int[1, ]
 no_int <- rbind(no_int, `Male-Female`)
@@ -233,14 +296,14 @@ no_int
 First, we check the reference categories:
 
 ```{r}
-contrasts(nhanes3$Edu)
+contrasts(nhanes3$Edu_f)
 contrasts(factor(nhanes3$Male))
 ```
 
 ### "Female and Not Graduate from HS" is the common reference group
 
 ```{r}
-nhanes3$SexEdu <- with(nhanes3, interaction(Sex, Edu))
+nhanes3$SexEdu <- with(nhanes3, interaction(Sex, Edu_f))
 contrasts(nhanes3$SexEdu)
 ```
 
