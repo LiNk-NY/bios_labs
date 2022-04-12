@@ -140,6 +140,8 @@ Here we create the plotting space:
 plot(c(0, 1), c(0, 1), type = "n", axes = FALSE, xlab="", ylab = "", asp = 1)
 axis(1, pos = 0.0)
 axis(2, pos = 0.0, las = 1)
+mtext("False Positive Rate", side = 1, line = 1)
+mtext("True Positive Rate", side = 2, line = 1)
 segments(x0 = c(0, 0, 1), x1 = c(1, 1, 1), y0 = c(0, 1, 0), y1 = c(1, 1, 1))
 ```
 
@@ -156,6 +158,12 @@ Add the line for model 2:
 lowe2 <- lowess(x = fp.s, y = tp.s, f = 1/10)
 lines(x = lowe2$x, y = lowe2$y, lwd = 2, col="blue")
 ```
+
+```{r}
+legend(0.65, 0.2, legend = c("Model 1", "Model 2"),
+       col = c("red", "blue"), lty = 1, lwd = 2)
+```
+
 
 As you can see, both lines are quite similar. This is due to the predictive
 ability of the variable that was dropped (`student`).
