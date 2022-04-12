@@ -34,7 +34,17 @@ contrasts(Default$default)
 fit <- glm(default ~ 1 + student + balance + income,
     family="binomial", data=Default)
 summary(fit)
+exp(coef(fit))
 ```
+
+For example, if we had a second model, we could include in the ROC plot to
+compare against the first.
+
+```{r}
+fit2 <- glm(default ~ balance + income, family = "binomial", data = Default)
+nostudent.p <- predict(fit2, type = "response")
+```
+
 
 ### Histogram of predicted probabilities
 
@@ -107,16 +117,48 @@ for (i in seq_along(coff)) {
 }
 ```
 
-## Plotting the ROC curve
+We can calculate the True Positive Rate and False Positive Rate for Model 2:
 
 ```{r}
-plot(c(0, 1), c(0, 1), type = "n", axes = FALSE, xlab="", ylab = "")
+coff.s <- unique(nostudent.p)
+tp.s <- fp.s <- rep(NA, length(coff.s))
+
+for (i in seq_along(coff.s)) {
+  def.y <- as.numeric(nostudent.p >= coff.s[i])
+  xtab <- table(def.y, Default$default)
+
+  tp.s[i] <- xtab["1", "Yes"] / sum(xtab[, "Yes"])
+  fp.s[i] <- xtab["1", "No"] / sum(xtab[, "No"])
+}
+```
+
+
+## Plotting the ROC curve
+
+Here we create the plotting space:
+```{r}
+plot(c(0, 1), c(0, 1), type = "n", axes = FALSE, xlab="", ylab = "", asp = 1)
 axis(1, pos = 0.0)
 axis(2, pos = 0.0, las = 1)
 segments(x0 = c(0, 0, 1), x1 = c(1, 1, 1), y0 = c(0, 1, 0), y1 = c(1, 1, 1))
-lowe <- lowess(x = fp, y = tp, f = 1/10)
-lines(x = lowe$x, y = lowe$y, lwd = 2, col="red")
 ```
+
+Now we add the line for Model 1:
+
+```{r}
+lowe1 <- lowess(x = fp, y = tp, f = 1/10)
+lines(x = lowe1$x, y = lowe1$y, lwd = 2, col="red")
+```
+
+Add the line for model 2:
+
+```{r}
+lowe2 <- lowess(x = fp.s, y = tp.s, f = 1/10)
+lines(x = lowe2$x, y = lowe2$y, lwd = 2, col="blue")
+```
+
+As you can see, both lines are quite similar. This is due to the predictive
+ability of the variable that was dropped (`student`).
 
 ## Calculating the Area Under the Curve (AUC)
 
@@ -124,15 +166,31 @@ We can compare models by their AUC. It is a measure of how well the model
 performs in predictive ability.
 
 ```{r}
-len <- length(lowe$x)
-h <- lowe$x[-1] - lowe$x[-len]   # heights of individual parallelograms
+len <- length(lowe1$x)
+h <- lowe1$x[-1] - lowe1$x[-len]   # heights of individual parallelograms
 ## alternatively
 ## h <- diff(lowe$x)
 
-ub <- lowe$y[-1]
-lb <- lowe$y[-len]
-auc <- sum( ( (ub + lb) * h )/2 )
-auc
+ub <- lowe1$y[-1]
+lb <- lowe1$y[-len]
+auc1 <- sum( ( (ub + lb) * h )/2 )
+```
+
+```{r}
+len <- length(lowe2$x)
+h <- lowe2$x[-1] - lowe2$x[-len]   # heights of individual parallelograms
+## alternatively
+## h <- diff(lowe$x)
+
+ub <- lowe2$y[-1]
+lb <- lowe2$y[-len]
+auc2 <- sum( ( (ub + lb) * h )/2 )
+```
+
+Here are the AUC values side-by-side:
+
+```{r}
+c(model1 = auc1, model2 = auc2)
 ```
 
 # Exercise
