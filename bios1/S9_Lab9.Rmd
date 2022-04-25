@@ -195,7 +195,7 @@ mtcars %>%
 
 ```{r}
 nhanes3 %>%
-  split(.$Edu_f) %>% 
+  split(.$Edu_f) %>%
   map(~ glm(Hypertension ~ 1 + Male,  family='binomial', data= .x)) %>%
   map(summary)
 ```
@@ -345,9 +345,22 @@ This is an important EPI topic.
 https://catalyst.harvard.edu/docs/biostatsseminar/VanderWeele2012.pdf
 
 
-# Exercise (fill in the table)
+# Lab 9 Exercise (subgroup analysis with HELP RCT)
 
-Note. `_i` means the estimate from the interaction
+Using the HELP RCT data, fit models with following variables:
+
+* Response Y: linkstatus (1=linked; 0=otherwise)
+* Covariate X1: treat (1=treated; 0=control)
+* Covariate X2: substance (alcohol/cocaine/heroin)
+
+Model 1: without interaction
+
+Model 2: with interaction (X1 and X2)
+
+Populate the following table and upload knitted Word document.
+
+Notes. The 'table' can be a matrix as seen in the above example. In the table
+columns below, `_i` means the estimate from the interaction.
 
 |                 | Alcohol | Cocaine | Heroin | Alcohol_i | Cocaine_i | Heroin_i |
 |-----------------|---------|---------|--------|-----------|-----------|----------|
