@@ -1,7 +1,6 @@
 ---
 title: "Mediation Analysis"
 author: "BIOS 620"
-date: "5/6/2021"
 output: word_document
 ---
 
@@ -12,7 +11,6 @@ knitr::opts_chunk$set(echo = TRUE)
 # Setup
 
 ```{r}
-# install.packages("mediation")
 library(mediation)
 data("framing")
 head(framing)
@@ -31,8 +29,7 @@ $$
 $$
 
 ```{r}
-med.fit <- lm(emo ~ treat + age + educ + gender + income, 
-              data = framing)
+med.fit <- lm(emo ~ treat + age + educ + gender + income, data = framing)
 ```
 
 $$
@@ -42,9 +39,8 @@ $$
 $$
 
 ```{r}
-out.fit <- glm(cong_mesg ~ treat + emo + age + educ 
-               + gender + income, data = framing, 
-               family = binomial)
+out.fit <- glm(cong_mesg ~ treat + emo + age + educ  + gender + income,
+  data = framing, family = binomial)
 ```
 
 ## Mediation Analysis Results
@@ -54,19 +50,19 @@ $$
    \text{ACME}(x) &= \text{E}(\delta_{i}(x)) \equiv \text{E}[Y_{i}(x, M_{i}(1)) - Y_{i}(x, M_{i}(0))],\\
    \text{ADE}(x) &= \text{E}(\phi_{i}(x)) \equiv \text{E}[Y_{i}(1, M_{i}(x)) - Y_{i}(0, M_{i}(x))] \\
 \end{aligned}
-$$  
+$$
 
 ```{r}
 med.out <- mediate(med.fit, out.fit, 
                    treat = "treat", mediator = "emo", 
                    boot = TRUE, sims = 1000)
 summary(med.out)
-```   
+```
 
 # IRIS example with simulation
 
 Follow this link to get the full post:
-https://towardsdatascience.com/doing-and-reporting-your-first-mediation-analysis-in-r-2fe423b92171
+<https://towardsdatascience.com/doing-and-reporting-your-first-mediation-analysis-in-r-2fe423b92171>
 
 ```{r}
 data("iris")
@@ -79,22 +75,28 @@ its value is Sepal.Length + 65% of its value is random noise.
 
 ```{r}
 set.seed(12334)
-df$random1 <- runif( nrow(df), min = min(df$Sepal.Length), 
-                     max = max(df$Sepal.Length) )
+df$random1 <- runif(
+    n = nrow(df),
+    min = min(df$Sepal.Length),
+    max = max(df$Sepal.Length)
+)
 
 df$mediator <- df$Sepal.Length * 0.35 + df$random1 * 0.65
 ```
 
-
-simulate the dependent variable, "likelihood to be pollinated by a bee." This 
+simulate the dependent variable, "likelihood to be pollinated by a bee." This
 variable will be named dv and consists of two parts again. 35% of its value is
-the Mediator, + 65% of its value is random noise. 
+the Mediator, + 65% of its value is random noise.
 
 In our example, the random noise could be non-plant-specific attributes like the
 location of the flower, weather conditions, soil, etc.
 
 ```{r}
-df$random2 <- runif( nrow(df), min = min(df$mediator), max = max(df$mediator))
+df$random2 <- runif(
+    n = nrow(df),
+    min = min(df$mediator),
+    max = max(df$mediator)
+)
 df$dv <- df$mediator * 0.35 + df$random2 * 0.65
 ```
 
@@ -112,7 +114,7 @@ summary(fit.totaleffect)
 Mediator as the outcome variable in the model
 
 ```{r}
-fit.mediator = lm(mediator ~ Sepal.Length, df)
+fit.mediator <- lm(mediator ~ Sepal.Length, df)
 summary(fit.mediator)
 ```
 
@@ -121,7 +123,7 @@ summary(fit.mediator)
 Full model (includes the mediator)
 
 ```{r}
-fit.dv = lm( dv ~ Sepal.Length + mediator, df)
+fit.dv <- lm(dv ~ Sepal.Length + mediator, df)
 summary(fit.dv)
 ```
 
@@ -130,21 +132,24 @@ summary(fit.dv)
 Use the `mediation` package:
 
 ```{r}
-results <- mediate( fit.mediator, fit.dv, treat='Sepal.Length',
+results <- mediate(fit.mediator, fit.dv, treat='Sepal.Length',
     mediator='mediator', boot=TRUE, sims = 1000)
 summary(results)
 ```
 
 # Lab Exercise
 
-Re-design the simulation so that: 
+Re-design the simulation so that:
 
-+ a certain portion of mediator and a certain portion of dependent variable is
-    coming from a confounder, e.g., the "petal.width" variable in the iris data.
-+ re-run the mediation analysis 
-    + (1) using the Matti Fichs's mediator model and outcome model (aka,
-        mis-specified model)
-    + (2) using the correct model where the confounder is added
-+ compare (1) and (2) and comment results, upload to BB.
+-   a certain portion of mediator and a certain portion of dependent
+    variable is coming from a confounder, e.g., the "petal.width"
+    variable in the iris data.
 
+-   re-run the mediation analyses:
 
+        (1) using the Matti Fichs's mediator model and outcome model (aka,
+            mis-specified model)
+
+        (2) using the correct model where the confounder is added
+
+-   compare (1) and (2) and comment results, upload to BB.
