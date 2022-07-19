@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(haven)
-rct <- read_spss("data/data_HELP.sav")
+rct <- read_spss("../data/data_HELP.sav")
 ```
 
 ## Summary statistics
@@ -59,7 +59,7 @@ boxplot(cesd ~ homeless, data = rct, xlab="homeless", ylab="Depression", las=1)
 # Describing the covariates (potential confounders): age
 
 ```{r}
-t.test(rct$age, rct$homeless)
+t.test(age ~ homeless, data = rct)
 ```
 
 # Describing the covariates (potential confounders): female
@@ -68,12 +68,10 @@ t.test(rct$age, rct$homeless)
 chisq.test(rct$female, rct$homeless)
 ```
 
-
 # Describing the covariates (potential confounders): racegrp
 ```{r}
 chisq.test(rct$racegrp, rct$homeless)
 ```
-
 
 # Confouding model based causal inference (univariate analysis, unadjusted effect)
 
@@ -112,7 +110,7 @@ head(prs_df)
 ```
 
 After estimating the propensity score, it is useful to plot histograms of the
-estimated propensity scores by homeless status: 
+estimated propensity scores by homeless status:
 
 ### Examining the region of common support of the scores
 
@@ -157,10 +155,10 @@ vars <- c("cesd", "homeless", "age", "female", "racegrp")
 rct_nomiss2 <- rct[complete.cases(rct[, vars]), vars]
 # identical(rct_nomiss, rct_nomiss2)
 
-mod_match <- matchit(homeless ~ age + female + racegrp, method = "nearest", 
+mod_match <- matchit(homeless ~ age + female + racegrp, method = "nearest",
     replace=FALSE, ratio=1, data=rct_nomiss)
 ## Example with 2:1 matching
-mod_match2 <- matchit(homeless ~ age + female + racegrp, method = "nearest", 
+mod_match2 <- matchit(homeless ~ age + female + racegrp, method = "nearest",
     replace=FALSE, ratio=2, data=rct_nomiss)
 ```
 
@@ -169,17 +167,17 @@ We can get some information about how successful the matching was using:
 ```{r}
 par(mfrow = c(1, 1))
 class(mod_match)
-summary(mod_match) 
-plot(mod_match) 
+summary(mod_match)
+plot(mod_match)
 ```
 
-# Examine the matched data 
+# Examine the matched data
 
 To create a data.frame containing only the matched observations, use the
 `match.data()` function:
 
 ```{r}
-dta_m <- match.data(mod_match) 
+dta_m <- match.data(mod_match)
 dim(dta_m)
 dim(rct)
 head(dta_m, 4)
@@ -190,7 +188,7 @@ head(dta_m, 4)
 ```{r}
 par(mfrow=c(1,1))
 
-plot(dta_m$distance[dta_m$homeless==0],  dta_m$age[dta_m$homeless==0], 
+plot(dta_m$distance[dta_m$homeless==0],  dta_m$age[dta_m$homeless==0],
     xlab="Propensity Score", ylab="Age", las=1)
 
 points(dta_m$distance[dta_m$homeless==1],  dta_m$age[dta_m$homeless==1], pch=2)
@@ -204,7 +202,7 @@ legend("topleft", pch=c(1,2), c("Homeless 0", "Homeless 1"))
 dta_m %>% group_by(homeless) %>% select(one_of(c("age"))) %>%
   summarise_all(mean)
 
-dta_m %>% group_by(homeless) %>% summarize(meanAge = mean(age)) 
+dta_m %>% group_by(homeless) %>% summarize(meanAge = mean(age))
 ```
 
 ```{r}
